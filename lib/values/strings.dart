@@ -2,9 +2,14 @@ class Strings{
   static const String appName = 'افق نوین';
   static const String ledger = 'دفتر کل';
   static const String inventory = 'گدام';
+  static const String customers = 'مشتری ها';
   static const String journal = 'روزنامچه';
   static const String bank = 'صرافی';
   static const String logout = 'خروج';
+
+  // general
+  static const String edit = 'ویرایش';
+  static const String delete = 'حذف';
 
   // Ledger DataTable Titles
   static const String date = 'تاریخ';
@@ -33,5 +38,37 @@ class Strings{
   static const String selectCategory = 'انتخاب کتگوری (اختیاری)';
   static const String selectAcount = 'انتخاب حساب (اختیاری)';
   static const String selectPaymentMethod = 'انتخاب روش پرداختی (اختیاری)';
+
+  // Customers
+  static const String addCustomerTitle = 'اضافه نمودن مشتری جدید';
+  static const String editCustomerTitle = 'ویرایش مشتری';
+  static const String name = 'نام';
+  static const String number = 'شماره';
+  static const String enterName = 'لطفاً یک نام وارد کنید!';
+  static const String email = 'ایمیل';
+  static const String enterEmail = 'لطفاً ایمیل را وارد کنید!';
+  static const String enterValidEmail = 'لطفاً ایمیل را درست وارد کنید!';
+  static const String phone1 = 'شماره تماس';
+  static const String phone2 = 'شماره تماس دومی';
+  static const String phoneNumbers = 'شماره های تماس';
+  static const String address = 'آدرس';
+  static const String enterAddress = 'لطفاً آدرس را وارد کنید!';
+  static const String customerAddedSuccessfully = 'مشتری موفقانه ثبت گردید';
+  static const String errorAddingCustomer = 'خطا در ثبت مشتری. لطفاً دوباره تلاش کنید!';
+  static const String errorDeletingCustomer = 'خطا در حذف مشتری';
+  static const String anErrorOccurred = 'خطای غیر منتظره. لطفاً دوباره تلاش کنید!';
+  static const String noCustomersFound = 'مشتری پیدا نشد';
+  static const String next = 'بعد';
+  static const String page = 'صفحه';
+  static const String previous = 'قبل';
+  static const String searchCustomers = 'جستجوی مشتری';
+  static const String searchByName = 'جستجو به اساس نام...';
+  static const String search = 'جستجو';
+  static const String clearFilter = 'برداشتن فیلتر';
+  static const String customerNotFound = 'مشتری موجود نیست!';
+  static const String dialogDeleteMessage = 'آیا مطمئن هستید میخواهیید مشتری را حذف کنید؟';
+  static const String dialogDeleteTitle = 'حذف مشتری: ';
+  static const String customerUpdatedSuccessfully = 'مشتری موفقانه آپدیت شد';
+  static const String errorUpdatingCustomer = 'خطا در آپدیت مشتری';
 
 }

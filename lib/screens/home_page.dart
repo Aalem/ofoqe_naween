@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
+import 'package:ofoqe_naween/screens/customers/customers.dart';
 import 'package:ofoqe_naween/screens/ledger/ledger.dart';
+import 'package:ofoqe_naween/screens/page_under_construction.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 
@@ -24,16 +26,16 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Logout Confirmation'),
-          content: Text('Are you sure you want to logout?'),
+          title: const Text('Logout Confirmation'),
+          content: const Text('Are you sure you want to logout?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: _logout,
-              child: Text('Logout'),
+              child: const Text('Logout'),
             ),
           ],
         );
@@ -45,7 +47,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NavigationProvider.instance.contentToDisplay = LedgerPage();
+    NavigationProvider.instance.contentToDisplay = CustomersPage();
   }
 
   @override
@@ -70,10 +72,10 @@ class _HomePageState extends State<HomePage> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      title: Text(Strings.appName),
+      title: const Text(Strings.appName),
       actions: [
         IconButton(
-          icon: Icon(Icons.menu),
+          icon: const Icon(Icons.menu),
           onPressed: () => _scaffoldKey.currentState
               ?.openEndDrawer(), // Open drawer on mobile
         ),
@@ -98,47 +100,54 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              child: Text(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor, // Customize header color
+              ),
+              child: const Text(
                 Strings.appName,
                 style: TextStyle(fontSize: 20, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor, // Customize header color
-              ),
             ),
             ListTile(
-              leading: Icon(Icons.inventory),
-              title: Text(Strings.inventory),
+              leading: const Icon(Icons.inventory),
+              title: const Text(Strings.inventory),
               onTap: () =>
                   Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(LoginPage()),
+                      .updatePage(UnderConstructionPage()),
             ),
             ListTile(
-              leading: Icon(Icons.book),
-              title: Text(Strings.ledger),
+              leading: const Icon(Icons.people),
+              title: const Text(Strings.customers),
               onTap: () =>
                   Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(LedgerPage()),
+                      .updatePage(CustomersPage()),
             ),
             ListTile(
-              leading: Icon(Icons.receipt),
-              title: Text(Strings.journal),
+              leading: const Icon(Icons.book),
+              title: const Text(Strings.ledger),
               onTap: () =>
                   Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(LedgerPage()),
+                      .updatePage(UnderConstructionPage()),
             ),
             ListTile(
-              leading: Icon(Icons.money),
-              title: Text(Strings.bank),
+              leading: const Icon(Icons.receipt),
+              title: const Text(Strings.journal),
               onTap: () =>
                   Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(LoginPage()),
+                      .updatePage(UnderConstructionPage()),
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: Text(Strings.logout),
-              onTap: () => _showLogoutConfirmation(),
+              leading: const Icon(Icons.money),
+              title: const Text(Strings.bank),
+              onTap: () =>
+                  Provider.of<NavigationProvider>(context, listen: false)
+                      .updatePage(UnderConstructionPage()),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text(Strings.logout),
+              // onTap: () => _showLogoutConfirmation(),
             ),
           ],
         ),

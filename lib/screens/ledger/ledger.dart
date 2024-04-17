@@ -41,14 +41,6 @@ class _LedgerPageState extends State<LedgerPage> {
               return AlertDialog(
                 title: const Text(Strings.addLedgerTitle),
                 content: AddLedgerEntry(), // Your AddLedgerEntry widget here
-                // actions: [
-                //   TextButton(
-                //     onPressed: () {
-                //       Navigator.pop(context); // Close the dialog
-                //     },
-                //     child: const Text('Cancel'),
-                //   ),
-                // ],
               );
             },
           );
