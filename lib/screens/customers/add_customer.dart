@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ofoqe_naween/screens/components/loading_progress.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -15,6 +16,8 @@ class NewCustomerPage extends StatefulWidget {
 class _NewCustomerPageState extends State<NewCustomerPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool _isLoading = false;
 
   late String _name;
   late String _email;
@@ -55,6 +58,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
+                enabled: !_isLoading,
                 initialValue: _name,
                 decoration: const InputDecoration(labelText: Strings.name),
                 validator: (value) {
@@ -66,6 +70,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 onSaved: (value) => _name = value!,
               ),
               TextFormField(
+                enabled: !_isLoading,
                 initialValue: _email,
                 decoration: const InputDecoration(labelText: Strings.email),
                 keyboardType: TextInputType.emailAddress,
@@ -80,8 +85,10 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 onSaved: (value) => _email = value!,
               ),
               TextFormField(
+                enabled: !_isLoading,
                 initialValue: _phone1,
-                decoration: const InputDecoration(labelText: Strings.phone1),
+                decoration:
+                    const InputDecoration(labelText: Strings.phone1),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   // Add validation for phone number format (optional)
@@ -90,8 +97,10 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 onSaved: (value) => _phone1 = value!,
               ),
               TextFormField(
+                enabled: !_isLoading,
                 initialValue: _phone2,
-                decoration: const InputDecoration(labelText: Strings.phone2),
+                decoration:
+                    const InputDecoration(labelText: Strings.phone2),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   // Add validation for phone number format (optional)
@@ -100,8 +109,10 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 onSaved: (value) => _phone2 = value!,
               ),
               TextFormField(
+                enabled: !_isLoading,
                 initialValue: _address,
-                decoration: const InputDecoration(labelText: Strings.address),
+                decoration:
+                    const InputDecoration(labelText: Strings.address),
                 maxLines: null,
                 // Allow multiple lines for address
                 validator: (value) {
@@ -119,13 +130,24 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: ElevatedButton(
-                        onPressed: () async {
+                        onPressed: _isLoading? null : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
                             await _saveCustomerToFirestore();
                           }
                         },
-                        child: const Text(Strings.save),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            const Text(Strings.save),
+                            if (_isLoading)
+                             const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -135,7 +157,8 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.grey, // Change button color
+                          backgroundColor: Colors.grey,
+                          // Change button color
                           textStyle: const TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
@@ -145,9 +168,10 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                               return Directionality(
                                 textDirection: TextDirection.rtl,
                                 child: AlertDialog(
-                                  title: const Text(Strings.dialogCancelTitle),
-                                  content:
-                                      const Text(Strings.dialogCancelMessage),
+                                  title:
+                                      const Text(Strings.dialogCancelTitle),
+                                  content: const Text(
+                                      Strings.dialogCancelMessage),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
@@ -158,7 +182,8 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                                       child: const Text(Strings.yes),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context),
+                                      onPressed: () =>
+                                          Navigator.pop(context),
                                       child: const Text(Strings.no),
                                     ),
                                   ],
@@ -191,6 +216,9 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
       };
 
       if (widget.customerData != null) {
+        setState(() {
+          _isLoading = true;
+        });
         // Editing an existing customer
         final String customerId =
             widget.customerData!['id']; // Assuming 'id' is the document ID
@@ -208,6 +236,10 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
           Navigator.pop(context);
         });
       } else {
+        print('CustomerData Null');
+        setState(() {
+          _isLoading = true;
+        });
         // Adding a new customer
         await _firestore
             .collection('customers')
@@ -219,6 +251,9 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
         });
       }
     } on FirebaseException catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       NotificationService().showError(
           context,
           widget.customerData != null
