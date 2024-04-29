@@ -42,9 +42,11 @@ class Strings{
   // Customers
   static const String addCustomerTitle = 'اضافه نمودن مشتری جدید';
   static const String editCustomerTitle = 'ویرایش مشتری';
-  static const String name = 'نام';
+  static const String name = 'اسم مشتری';
+  static const String company = 'شرکت';
   static const String number = 'شماره';
   static const String enterName = 'لطفاً یک نام وارد کنید!';
+  static const String enterCompany = 'لطفاً اسم شرکت را وارد کنید!';
   static const String email = 'ایمیل';
   static const String enterEmail = 'لطفاً ایمیل را وارد کنید!';
   static const String enterValidEmail = 'لطفاً ایمیل را درست وارد کنید!';

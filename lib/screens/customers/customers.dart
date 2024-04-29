@@ -1,4 +1,5 @@
 import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/customers/add_customer.dart';
@@ -23,21 +24,22 @@ class _CustomersPageState extends State<CustomersPage> {
     _customerStream = _getCustomers();
   }
 
-  // search one matching customer
   Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers(
       {bool isSearching = false}) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection('customers').orderBy('name');
+        _firestore.collection('customers');
 
     if (_searchController.text.isNotEmpty) {
       query = query
-          .where('name', isGreaterThanOrEqualTo: _searchController.text)
-          .where('name',
+          .where('company', isGreaterThanOrEqualTo: _searchController.text)
+          .where('company',
               isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
       // String searchText = _searchController.text.toLowerCase();
       // List<String> searchTerms = searchText.split(" ");
       //
       // query = query.where('name', arrayContainsAny: searchTerms);
+    }else{
+      query = query.orderBy('date', descending: true);
     }
 
     // Apply pagination to the query
@@ -52,21 +54,21 @@ class _CustomersPageState extends State<CustomersPage> {
     return query.snapshots();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _searchCustomers(
-      {bool isSearching = false}) {
-    Query<Map<String, dynamic>> query = _firestore
-        .collection('customers')
-        .where('name', arrayContainsAny: ['شاهد', 'کبیر']).orderBy('name');
-
-    if (_currentPage > 1) {
-      // If it's not the first page, start the query after the last document of the previous page
-      query = query.startAfterDocument(lastRecordedDocumentId);
-    }
-
-    query = query.limit(isSearching ? 1 : _pageSize);
-
-    return query.snapshots();
-  }
+  // Stream<QuerySnapshot<Map<String, dynamic>>> _searchCustomers(
+  //     {bool isSearching = false}) {
+  //   Query<Map<String, dynamic>> query = _firestore
+  //       .collection('customers')
+  //       .where('name', arrayContainsAny: ['شاهد', 'کبیر']).orderBy('name');
+  //
+  //   if (_currentPage > 1) {
+  //     // If it's not the first page, start the query after the last document of the previous page
+  //     query = query.startAfterDocument(lastRecordedDocumentId);
+  //   }
+  //
+  //   query = query.limit(isSearching ? 1 : _pageSize);
+  //
+  //   return query.snapshots();
+  // }
 
   void _handleNextPage() {
     setState(() {
@@ -105,6 +107,8 @@ class _CustomersPageState extends State<CustomersPage> {
               borderRadius: BorderRadius.circular(5.0),
             ),
             child: DataTable(
+              // dataRowColor: MaterialStateColor.resolveWith((states) => Colors.grey),
+
               headingTextStyle: Theme.of(context)
                   .textTheme
                   .bodyLarge
@@ -113,6 +117,7 @@ class _CustomersPageState extends State<CustomersPage> {
                   (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
+                DataColumn(label: Text(Strings.company)),
                 DataColumn(label: Text(Strings.name)),
                 DataColumn(label: Text(Strings.phoneNumbers)),
                 DataColumn(label: Text(Strings.email)),
@@ -127,10 +132,11 @@ class _CustomersPageState extends State<CustomersPage> {
                 return DataRow(
                   cells: [
                     DataCell(Text(number.toString())),
+                    DataCell(Text(customerEntry['company'] ?? '')),
                     DataCell(Text(customerEntry['name'] ?? '')),
                     DataCell(Text(
-                        '${customerEntry["phone1"]} \n ${customerEntry["phone2"]}' ??
-                            '')),
+                        '${customerEntry["phone1"]} ${customerEntry["phone2"].isNotEmpty ? '\n${customerEntry["phone2"]}' : ''}'
+                    )),
                     DataCell(Text(customerEntry['email'] ?? '')),
                     DataCell(Text(customerEntry['address'] ?? '')),
                     DataCell(
@@ -197,7 +203,7 @@ class _CustomersPageState extends State<CustomersPage> {
         ],
       );
     } else {
-      return Text(
+      return const Text(
         Strings.customerNotFound,
         style: TextStyle(
           fontSize: 16,

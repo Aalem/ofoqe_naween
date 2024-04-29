@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ofoqe_naween/screens/components/loading_progress.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -20,6 +19,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
   bool _isLoading = false;
 
   late String _name;
+  late String _company;
   late String _email;
   late String _phone1;
   late String _phone2;
@@ -30,6 +30,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
     super.initState();
     // Initialize form fields with customer data if provided
     if (widget.customerData != null) {
+      _company = widget.customerData!['company'] ?? '';
       _name = widget.customerData!['name'] ?? '';
       _email = widget.customerData!['email'] ?? '';
       _phone1 = widget.customerData!['phone1'] ?? '';
@@ -37,6 +38,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
       _address = widget.customerData!['address'] ?? '';
     } else {
       // Initialize form fields with empty values if no customer data provided
+      _company = '';
       _name = '';
       _email = '';
       _phone1 = '';
@@ -59,6 +61,18 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
             children: [
               TextFormField(
                 enabled: !_isLoading,
+                initialValue: _company,
+                decoration: const InputDecoration(labelText: Strings.company),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return Strings.enterCompany;
+                  }
+                  return null;
+                },
+                onSaved: (value) => _company = value!,
+              ),
+              TextFormField(
+                enabled: !_isLoading,
                 initialValue: _name,
                 decoration: const InputDecoration(labelText: Strings.name),
                 validator: (value) {
@@ -76,7 +90,9 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return Strings.enterEmail;
+                    // return Strings.enterEmail;
+                    // return Strings.enterEmail;
+                    return null;
                   } else if (!RegExp(r"\S+@\S+\.\S+").hasMatch(value)) {
                     return Strings.enterValidEmail;
                   }
@@ -208,11 +224,13 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
   Future<void> _saveCustomerToFirestore() async {
     try {
       final customerData = {
+        'company': _company,
         'name': _name,
         'email': _email,
         'phone1': _phone1,
         'phone2': _phone2,
         'address': _address,
+        'date': Timestamp.now(),
       };
 
       if (widget.customerData != null) {
