@@ -1,8 +1,10 @@
-import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/customers/add_customer.dart';
+import 'package:ofoqe_naween/services/customer_service.dart';
+import 'package:ofoqe_naween/models/customer_model.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class CustomersPage extends StatefulWidget {
@@ -26,49 +28,25 @@ class _CustomersPageState extends State<CustomersPage> {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers(
       {bool isSearching = false}) {
-    Query<Map<String, dynamic>> query =
-        _firestore.collection('customers');
+    Query<Map<String, dynamic>> query = _firestore.collection('customers');
 
     if (_searchController.text.isNotEmpty) {
       query = query
           .where('company', isGreaterThanOrEqualTo: _searchController.text)
           .where('company',
               isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
-      // String searchText = _searchController.text.toLowerCase();
-      // List<String> searchTerms = searchText.split(" ");
-      //
-      // query = query.where('name', arrayContainsAny: searchTerms);
-    }else{
+    } else {
       query = query.orderBy('date', descending: true);
     }
 
-    // Apply pagination to the query
     if (_currentPage > 1) {
-      // If it's not the first page, start the query after the last document of the previous page
       query = query.startAfterDocument(lastRecordedDocumentId);
     }
 
-    query = query.limit(
-        isSearching ? 1 : _pageSize); // Limit the number of documents per page
+    query = query.limit(isSearching ? 1 : _pageSize);
 
     return query.snapshots();
   }
-
-  // Stream<QuerySnapshot<Map<String, dynamic>>> _searchCustomers(
-  //     {bool isSearching = false}) {
-  //   Query<Map<String, dynamic>> query = _firestore
-  //       .collection('customers')
-  //       .where('name', arrayContainsAny: ['شاهد', 'کبیر']).orderBy('name');
-  //
-  //   if (_currentPage > 1) {
-  //     // If it's not the first page, start the query after the last document of the previous page
-  //     query = query.startAfterDocument(lastRecordedDocumentId);
-  //   }
-  //
-  //   query = query.limit(isSearching ? 1 : _pageSize);
-  //
-  //   return query.snapshots();
-  // }
 
   void _handleNextPage() {
     setState(() {
@@ -94,8 +72,7 @@ class _CustomersPageState extends State<CustomersPage> {
   }
 
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    int number =
-        (_currentPage - 1) * _pageSize; // Calculate the starting number
+    int number = (_currentPage - 1) * _pageSize;
     if (snapshot.docs.isNotEmpty) {
       lastRecordedDocumentId = snapshot.docs.last;
       return Column(
@@ -103,15 +80,18 @@ class _CustomersPageState extends State<CustomersPage> {
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(5.0),
             ),
             child: DataTable(
-              // dataRowColor: MaterialStateColor.resolveWith((states) => Colors.grey),
-
+              border: TableBorder.all(
+                width: 0.1, // Adjust width as needed
+                color: Colors.grey, // Change color to your preference
+                style: BorderStyle.solid,
+              ),
               headingTextStyle: Theme.of(context)
                   .textTheme
-                  .bodyLarge
+                  .bodyText1
                   ?.copyWith(fontWeight: FontWeight.bold),
               headingRowColor: MaterialStateColor.resolveWith(
                   (states) => Theme.of(context).highlightColor),
@@ -126,19 +106,17 @@ class _CustomersPageState extends State<CustomersPage> {
                 DataColumn(label: Text(Strings.delete)),
               ],
               rows: snapshot.docs.map((entry) {
-                final customerEntry = entry.data();
-                customerEntry['id'] = entry.id;
+                final customerEntry = Customer.fromMap(entry.data());
                 number++;
                 return DataRow(
                   cells: [
-                    DataCell(Text(number.toString())),
-                    DataCell(Text(customerEntry['company'] ?? '')),
-                    DataCell(Text(customerEntry['name'] ?? '')),
+                    DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: 30),child: Text(number.toString()))),
+                    DataCell(Text(customerEntry.company)),
+                    DataCell(Text(customerEntry.name)),
                     DataCell(Text(
-                        '${customerEntry["phone1"]} ${customerEntry["phone2"].isNotEmpty ? '\n${customerEntry["phone2"]}' : ''}'
-                    )),
-                    DataCell(Text(customerEntry['email'] ?? '')),
-                    DataCell(Text(customerEntry['address'] ?? '')),
+                        '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
+                    DataCell(Text(customerEntry.email)),
+                    DataCell(Text(customerEntry.address)),
                     DataCell(
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
@@ -150,7 +128,8 @@ class _CustomersPageState extends State<CustomersPage> {
                                 textDirection: TextDirection.rtl,
                                 child: AlertDialog(
                                   title: const Text(Strings.addCustomerTitle),
-                                  content: NewCustomerPage(customerData: customerEntry), // Your AddLedgerEntry widget here
+                                  content: NewCustomerPage(
+                                      customer: customerEntry, id: entry.id),
                                 ),
                               );
                             },
@@ -161,38 +140,31 @@ class _CustomersPageState extends State<CustomersPage> {
                     DataCell(IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        // Implement delete functionality here
-                        // You can show a confirmation dialog and
-                        // delete the customer document from Firestore
                         showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ConfirmationDialog(
-                                title: Strings.dialogDeleteTitle +
-                                    customerEntry['name'],
-                                message: Strings.dialogDeleteMessage,
-                                onConfirm: () {
-                                  // Delete the customer document from Firestore
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ConfirmationDialog(
+                              title: Strings.dialogDeleteTitle +
+                                  customerEntry.name,
+                              message: Strings.dialogDeleteMessage,
+                              onConfirm: () async {
+                                try {
+                                  await CustomerService.deleteCustomer(
+                                      entry.id);
                                   Navigator.of(context).pop();
-                                  FirebaseFirestore.instance
-                                      .collection('customers')
-                                      .doc(entry
-                                          .id) // Assuming 'entry.id' contains the document ID
-                                      .delete()
-                                      .then((_) {
-                                    // Close the dialog
-                                  }).catchError((error) {
-                                    // Show an error message
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
                                       content:
                                           Text('Failed to delete customer'),
                                       backgroundColor: Colors.red,
-                                    ));
-                                  });
-                                },
-                              );
-                            });
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        );
                       },
                     )),
                   ],
@@ -226,7 +198,7 @@ class _CustomersPageState extends State<CustomersPage> {
                 textDirection: TextDirection.rtl,
                 child: AlertDialog(
                   title: Text(Strings.addCustomerTitle),
-                  content: NewCustomerPage(), // Your AddLedgerEntry widget here
+                  content: NewCustomerPage(),
                 ),
               );
             },
@@ -247,8 +219,6 @@ class _CustomersPageState extends State<CustomersPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          final customerData = snapshot.data!.docs;
 
           return Directionality(
             textDirection: TextDirection.rtl,
@@ -292,7 +262,6 @@ class _CustomersPageState extends State<CustomersPage> {
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
                       scrollDirection: Axis.vertical,
-                      // Enable vertical scrolling
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: _buildDataTable(snapshot.data!),
@@ -316,7 +285,7 @@ class _CustomersPageState extends State<CustomersPage> {
                       Text('${Strings.page} $_currentPage'),
                       const SizedBox(width: 10.0),
                       Visibility(
-                        visible: customerData.length == _pageSize,
+                        visible: snapshot.data!.docs.length == _pageSize,
                         child: TextButton(
                           onPressed: _handleNextPage,
                           child: const Text(Strings.next),
