@@ -4,7 +4,7 @@ class Strings{
   static const String inventory = 'گدام';
   static const String customers = 'مشتری ها';
   static const String journal = 'روزنامچه';
-  static const String bank = 'صرافی';
+  static const String moneyExchange = 'صرافی';
   static const String logout = 'خروج';
 
   // general
@@ -12,7 +12,8 @@ class Strings{
   static const String delete = 'حذف';
 
   // Ledger DataTable Titles
-  static const String date = 'تاریخ';
+  static const String jalaliDate = 'تاریخ شمسی';
+  static const String gregorianDate = 'تاریخ میلادی';
   static const String description = 'توضیحات';
   static const String amount = 'مبلغ';
   static const String category = 'بخش';
@@ -73,4 +74,19 @@ class Strings{
   static const String customerUpdatedSuccessfully = 'مشتری موفقانه آپدیت شد';
   static const String errorUpdatingCustomer = 'خطا در آپدیت مشتری';
 
+  // Money Exchange
+  static const String debit = 'رسید';
+  static const String credit = 'برداشت';
+  static const String balance = 'بیلانس (باقی مانده)';
+  static const String enterDebit = 'مبلغ رسید را وارد کنید!';
+  static const String enterCredit = 'مبلغ برداشت را وارد کنید!';
+  static const String transactionAddedSuccessfully = 'اطلاعات صرافی موفقانه ثبت گردید';
+  static const String errorUpdatingTransaction = 'خطا در ثبت آپدیت اطلاعات صرافی!';
+  static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
+  static const String addTransactionTitle = 'اضافه نمودن برداشت یا رسید صرافی';
+  static const String deleteTransaction = 'حذف تراکنش';
+  static const String transactionNotFound = 'تراکنشی موجود نیست';
+  static const String transactions = 'تراکنش ها';
+  static const String searchByDescription = 'جستجو به اساس توضیحات';
+  static const String paymentTypeNotSelected = 'لطفاً نوع تراکنش را انتخاب کنید!';
 }

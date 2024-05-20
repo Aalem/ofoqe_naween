@@ -41,6 +41,9 @@ dependencies:
   font_awesome_flutter:
   provider:
   intl:
+  dari_datetime_picker:
+    git:
+      url: https://github.com/Aalem/afghan-datetime-picker.git
 
 dev_dependencies:
   flutter_test:

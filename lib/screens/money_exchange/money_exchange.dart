@@ -1,39 +1,39 @@
-import 'package:flutter/cupertino.dart';
+import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/screens/customers/add_customer.dart';
-import 'package:ofoqe_naween/services/customer_service.dart';
-import 'package:ofoqe_naween/models/customer_model.dart';
+import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
+import 'package:ofoqe_naween/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
+import 'package:intl/intl.dart' as intl;
 
-class CustomersPage extends StatefulWidget {
+class MoneyExchange extends StatefulWidget {
   @override
-  _CustomersPageState createState() => _CustomersPageState();
+  _MoneyExchangeState createState() => _MoneyExchangeState();
 }
 
-class _CustomersPageState extends State<CustomersPage> {
+class _MoneyExchangeState extends State<MoneyExchange> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
-  Stream<QuerySnapshot<Map<String, dynamic>>>? _customerStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
   late DocumentSnapshot lastRecordedDocumentId;
 
   @override
   void initState() {
     super.initState();
-    _customerStream = _getCustomers();
+    _transactionStream = _getTransactions();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers(
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions(
       {bool isSearching = false}) {
-    Query<Map<String, dynamic>> query = _firestore.collection('customers');
+    Query<Map<String, dynamic>> query = _firestore.collection('money_exchange');
 
     if (_searchController.text.isNotEmpty) {
       query = query
-          .where('company', isGreaterThanOrEqualTo: _searchController.text)
-          .where('company',
+          .where('description', isGreaterThanOrEqualTo: _searchController.text)
+          .where('description',
               isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
     } else {
       query = query.orderBy('date', descending: true);
@@ -51,7 +51,7 @@ class _CustomersPageState extends State<CustomersPage> {
   void _handleNextPage() {
     setState(() {
       _currentPage++;
-      _customerStream = _getCustomers();
+      _transactionStream = _getTransactions();
     });
   }
 
@@ -59,7 +59,7 @@ class _CustomersPageState extends State<CustomersPage> {
     if (_currentPage > 1) {
       setState(() {
         _currentPage--;
-        _customerStream = _getCustomers();
+        _transactionStream = _getTransactions();
       });
     }
   }
@@ -67,7 +67,7 @@ class _CustomersPageState extends State<CustomersPage> {
   void _search() {
     _currentPage = 1;
     setState(() {
-      _customerStream = _getCustomers(isSearching: false);
+      _transactionStream = _getTransactions(isSearching: false);
     });
   }
 
@@ -97,43 +97,45 @@ class _CustomersPageState extends State<CustomersPage> {
                   (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
-                DataColumn(label: Text(Strings.company)),
-                DataColumn(label: Text(Strings.name)),
-                DataColumn(label: Text(Strings.phoneNumbers)),
-                // DataColumn(label: Text(Strings.email)),
-                DataColumn(label: Text(Strings.address)),
+                DataColumn(label: Text(Strings.jalaliDate)),
+                DataColumn(label: Text(Strings.gregorianDate)),
+                DataColumn(label: Text(Strings.description)),
+                DataColumn(label: Text(Strings.debit)),
+                DataColumn(label: Text(Strings.credit)),
+                // DataColumn(label: Text(Strings.balance)),
                 DataColumn(label: Text(Strings.edit)),
                 DataColumn(label: Text(Strings.delete)),
               ],
               rows: snapshot.docs.map((entry) {
-                final customerEntry = Customer.fromMap(entry.data());
+                final transactionEntry = entry.data();
                 number++;
                 return DataRow(
                   cells: [
-                    DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: 30),child: Text(number.toString()))),
-                    DataCell(Text(customerEntry.company)),
-                    DataCell(Text(customerEntry.name)),
+                    DataCell(ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 30),
+                        child: Text(number.toString()))),
+                    // DataCell(Text(transactionEntry['jalali_date'] ?? '')),
+                    // DataCell(Text(Jalali.fromGregorian(transactionEntry['gregorian_date'].toDate()).toString()  ?? '')),
                     DataCell(Text(
-                        '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
-                    // DataCell(Text(customerEntry.email)),
-                    DataCell(Text(customerEntry.address)),
+                      Jalali.fromDateTime(transactionEntry['gregorian_date'].toDate()).formatCompactDate().toString(),
+                    )),
+                    // DataCell(Text(transactionEntry['gregorian_date'] ?? '')),
+                    // DataCell(Text(
+                    //   intl.DateFormat('yyyy-MM-dd').format(transactionEntry['gregorian_date'] ?? DateTime.now()),
+                    // )),
+                    DataCell(Text(
+                      intl.DateFormat('yyyy-MM-dd').format(transactionEntry['gregorian_date'].toDate()),
+                    )),
+                    DataCell(Text(transactionEntry['description'] ?? '')),
+                    DataCell(Text(transactionEntry['debit'].toString() ?? '')),
+                    DataCell(Text(transactionEntry['credit'].toString() ?? '')),
+                    // DataCell(
+                    //     Text(transactionEntry['balance'].toString() ?? '')),
                     DataCell(
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: AlertDialog(
-                                  title: const Text(Strings.addCustomerTitle),
-                                  content: NewCustomerPage(
-                                      customer: customerEntry, id: entry.id),
-                                ),
-                              );
-                            },
-                          );
+                          // Implement edit functionality
                         },
                       ),
                     ),
@@ -145,18 +147,18 @@ class _CustomersPageState extends State<CustomersPage> {
                           builder: (BuildContext context) {
                             return ConfirmationDialog(
                               title: Strings.dialogDeleteTitle +
-                                  customerEntry.name,
+                                  transactionEntry['description'],
                               message: Strings.dialogDeleteMessage,
                               onConfirm: () async {
                                 try {
-                                  await CustomerService.deleteCustomer(
+                                  await MoneyExchangeService.deleteTransaction(
                                       entry.id);
                                   Navigator.of(context).pop();
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content:
-                                          Text('Failed to delete customer'),
+                                          Text('Failed to delete transaction'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -176,7 +178,7 @@ class _CustomersPageState extends State<CustomersPage> {
       );
     } else {
       return const Text(
-        Strings.customerNotFound,
+        Strings.transactionNotFound,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -197,8 +199,8 @@ class _CustomersPageState extends State<CustomersPage> {
               return const Directionality(
                 textDirection: TextDirection.rtl,
                 child: AlertDialog(
-                  title: Text(Strings.addCustomerTitle),
-                  content: NewCustomerPage(),
+                  title: Text(Strings.addTransactionTitle),
+                  content: AddTransaction(),
                 ),
               );
             },
@@ -207,10 +209,10 @@ class _CustomersPageState extends State<CustomersPage> {
         child: const Icon(Icons.add),
       ),
       appBar: AppBar(
-        title: const Text(Strings.customers),
+        title: const Text(Strings.transactions),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _customerStream,
+        stream: _transactionStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -224,6 +226,7 @@ class _CustomersPageState extends State<CustomersPage> {
             textDirection: TextDirection.rtl,
             child: Column(
               children: [
+                const SizedBox(height: 18),
                 SizedBox(
                   width: MediaQuery.of(context).size.width > 600
                       ? MediaQuery.of(context).size.width / 2
@@ -231,7 +234,7 @@ class _CustomersPageState extends State<CustomersPage> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: Strings.searchByName,
+                      hintText: Strings.searchByDescription,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
@@ -302,3 +305,106 @@ class _CustomersPageState extends State<CustomersPage> {
     );
   }
 }
+
+// import 'package:flutter/material.dart';
+// import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
+// import 'package:ofoqe_naween/values/strings.dart';
+//
+// class MoneyExchange extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       floatingActionButton: FloatingActionButton(
+//         onPressed: () {
+//           showDialog(
+//             context: context,
+//             builder: (BuildContext context) {
+//               return const Directionality(
+//                 textDirection: TextDirection.rtl,
+//                 child: AlertDialog(
+//                   title: Text(Strings.addTransactionTitle),
+//                   content: AddTransaction(),
+//                 ),
+//               );
+//             },
+//           );
+//         },
+//         child: const Icon(Icons.add),
+//       ),
+//       appBar: AppBar(
+//         title: Text(Strings.moneyExchange),
+//       ),
+//       body: SingleChildScrollView(
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.stretch,
+//           children: [
+//             Container(
+//               decoration: BoxDecoration(
+//                 border: Border.all(color: Colors.grey.shade300),
+//                 borderRadius: BorderRadius.circular(5.0),
+//               ),
+//               child: DataTable(
+//                 columns: [
+//                   DataColumn(label: Text('Date')),
+//                   DataColumn(label: Text('Description')),
+//                   DataColumn(label: Text('Debit')),
+//                   DataColumn(label: Text('Credit')),
+//                   DataColumn(label: Text('Balance')),
+//                 ],
+//                 rows: [
+//                   DataRow(cells: [
+//                     DataCell(Text('2024-05-01')),
+//                     DataCell(Text('Transaction 1')),
+//                     DataCell(Text('100.00')),
+//                     DataCell(Text('-')),
+//                     DataCell(Text('100.00')),
+//                   ]),
+//                   DataRow(cells: [
+//                     DataCell(Text('2024-05-02')),
+//                     DataCell(Text('Transaction 2')),
+//                     DataCell(Text('-')),
+//                     DataCell(Text('50.00')),
+//                     DataCell(Text('50.00')),
+//                   ]),
+//                   // Add more rows as needed
+//                 ],
+//               ),
+//             ),
+//             SizedBox(height: 20),
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.stretch,
+//                 children: [
+//                   Text('Summary', style: TextStyle(fontSize: 18)),
+//                   SizedBox(height: 10),
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Text('Total Debit:'),
+//                       Text('150.00'), // Replace with actual total debit
+//                     ],
+//                   ),
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Text('Total Credit:'),
+//                       Text('50.00'), // Replace with actual total credit
+//                     ],
+//                   ),
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Text('Balance:'),
+//                       Text('100.00'), // Replace with actual balance
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

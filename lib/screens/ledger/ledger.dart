@@ -85,7 +85,7 @@ class _LedgerPageState extends State<LedgerPage> {
                         headingRowColor: MaterialStateColor.resolveWith(
                             (states) => Theme.of(context).highlightColor),
                         columns: [
-                          DataColumn(label: Text(Strings.date)),
+                          DataColumn(label: Text(Strings.gregorianDate)),
                           DataColumn(label: Text(Strings.description)),
                           DataColumn(label: Text(Strings.amount)),
                           DataColumn(label: Text(Strings.category)),

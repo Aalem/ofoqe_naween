@@ -58,7 +58,7 @@ class _AddLedgerEntryState extends State<AddLedgerEntry> {
               children: [
                 TextFormField(
                   controller: _dateTextController,
-                  decoration: const InputDecoration(labelText: Strings.date),
+                  decoration: const InputDecoration(labelText: Strings.gregorianDate),
                   readOnly: true,
                   // Use date picker instead of direct input
                   onTap: () async {

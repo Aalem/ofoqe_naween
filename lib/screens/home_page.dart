@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
 import 'package:ofoqe_naween/screens/customers/customers.dart';
-import 'package:ofoqe_naween/screens/ledger/ledger.dart';
+import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
 import 'package:ofoqe_naween/screens/page_under_construction.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
-
-import 'login_page.dart'; // Import for icons
 
 class HomePage extends StatefulWidget {
   @override
@@ -47,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NavigationProvider.instance.contentToDisplay = CustomersPage();
+    NavigationProvider.instance.contentToDisplay = MoneyExchange();
   }
 
   @override
@@ -139,10 +137,10 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.money),
-              title: const Text(Strings.bank),
+              title: const Text(Strings.moneyExchange),
               onTap: () =>
                   Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(UnderConstructionPage()),
+                      .updatePage(MoneyExchange()),
             ),
             ListTile(
               leading: const Icon(Icons.logout),

@@ -113,6 +113,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  dari_datetime_picker:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "3d60c4d1a63fd0323c97e3d757d28a2f40cd0e47"
+      url: "https://github.com/Aalem/afghan-datetime-picker.git"
+    source: git
+    version: "2.6.0"
   fake_async:
     dependency: transitive
     description:
