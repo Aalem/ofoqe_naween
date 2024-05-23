@@ -92,7 +92,7 @@ class _CustomersPageState extends State<CustomersPage> {
               ),
               headingTextStyle: Theme.of(context)
                   .textTheme
-                  .bodyText1
+                  .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
               headingRowColor: MaterialStateColor.resolveWith(
                   (states) => Theme.of(context).highlightColor),
