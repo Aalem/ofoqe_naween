@@ -3,6 +3,7 @@ import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dar
 
 class MoneyExchangeService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static const String _moneyExchangeCollection = 'money_exchange';
 
   static Future<void> addTransaction(TransactionModel transaction) async {
     try {
@@ -23,7 +24,7 @@ class MoneyExchangeService {
           });
         }
 
-        DocumentReference transactionRef = _firestore.collection('money_exchange').doc();
+        DocumentReference transactionRef = _firestore.collection(_moneyExchangeCollection).doc();
         txn.set(transactionRef, transaction.toMap());
       });
     } catch (e) {
@@ -34,7 +35,7 @@ class MoneyExchangeService {
   static Future<void> deleteTransaction(String transactionId) async {
     try {
       await _firestore.runTransaction((txn) async {
-        DocumentReference transactionRef = _firestore.collection('money_exchange').doc(transactionId);
+        DocumentReference transactionRef = _firestore.collection(_moneyExchangeCollection).doc(transactionId);
 
         DocumentSnapshot transactionSnapshot = await txn.get(transactionRef);
 
@@ -81,6 +82,16 @@ class MoneyExchangeService {
       await balanceRef.set({'balance': newBalance}, SetOptions(merge: true));
     } catch (e) {
       throw Exception('Failed to update balance: $e');
+    }
+  }
+
+
+
+  static Future<void> updateTransaction(String id, Map<String, dynamic> transactionData) async {
+    try {
+      await _firestore.collection(_moneyExchangeCollection).doc(id).update(transactionData);
+    } catch (e) {
+      throw Exception('Failed to update transaction: $e');
     }
   }
 }

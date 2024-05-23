@@ -56,6 +56,7 @@ class Strings{
   static const String phoneNumbers = 'شماره های تماس';
   static const String address = 'آدرس';
   static const String enterAddress = 'لطفاً آدرس را وارد کنید!';
+  static const String enterCorrectNumber= 'لطفاً شماره را درست وارد کنید!';
   static const String customerAddedSuccessfully = 'مشتری موفقانه ثبت گردید';
   static const String errorAddingCustomer = 'خطا در ثبت مشتری. لطفاً دوباره تلاش کنید!';
   static const String errorDeletingCustomer = 'خطا در حذف مشتری';
@@ -80,7 +81,8 @@ class Strings{
   static const String balance = 'بیلانس (باقی مانده)';
   static const String enterDebit = 'مبلغ رسید را وارد کنید!';
   static const String enterCredit = 'مبلغ برداشت را وارد کنید!';
-  static const String transactionAddedSuccessfully = 'اطلاعات صرافی موفقانه ثبت گردید';
+  static const String transactionAddedSuccessfully = 'تراکنش موفقانه ثبت گردید';
+  static const String transactionUpdatedSuccessfully = 'تراکنش موفقانه ویرایش گردید';
   static const String errorUpdatingTransaction = 'خطا در ثبت آپدیت اطلاعات صرافی!';
   static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
   static const String addTransactionTitle = 'اضافه نمودن برداشت یا رسید صرافی';

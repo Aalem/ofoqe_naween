@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
+import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/models/customer_model.dart';
 import 'package:ofoqe_naween/services/customer_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
+import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class NewCustomerPage extends StatefulWidget {
   final Customer? customer; // Customer data for editing
   final String? id;
 
-  const NewCustomerPage({Key? key, this.customer, this.id}) : super(key: key);
+  const NewCustomerPage({super.key, this.customer, this.id});
 
   @override
   _NewCustomerPageState createState() => _NewCustomerPageState();
@@ -38,169 +41,133 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
     }
   }
 
+  List<Widget> getResponsiveRow(List<Widget> widgets) {
+    return MediaQuery.of(context).size.width > 600
+        ? [
+            Row(
+              children: [
+                Expanded(child: widgets.first),
+                Expanded(child: widgets.last),
+              ],
+            )
+          ]
+        : widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width > 600
           ? MediaQuery.of(context).size.width / 2
-          : null,
+          : MediaQuery.of(context).size.width / 1,
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              ...getResponsiveRow([
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  label: Strings.company,
+                  controller: TextEditingController(text: _customer.company),
+                  validationMessage: Strings.enterCompany,
+                  onSaved: (value) => _customer.company = value!,
+                ),
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  controller: TextEditingController(text: _customer.name),
+                  label: Strings.name,
+                  validationMessage: Strings.enterName,
+                  onSaved: (value) => _customer.name = value!,
+                ),
+              ]),
+              CustomTextFormField(
                 enabled: !_isLoading,
-                initialValue: _customer.company,
-                decoration:
-                const InputDecoration(labelText: Strings.company),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return Strings.enterCompany;
-                  }
-                  return null;
-                },
-                onSaved: (value) => _customer.company = value!,
-              ),
-              TextFormField(
-                enabled: !_isLoading,
-                initialValue: _customer.name,
-                decoration:
-                const InputDecoration(labelText: Strings.name),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return Strings.enterName;
-                  }
-                  return null;
-                },
-                onSaved: (value) => _customer.name = value!,
-              ),
-              TextFormField(
-                enabled: !_isLoading,
-                initialValue: _customer.email,
-                decoration:
-                const InputDecoration(labelText: Strings.email),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return null;
-                  } else if (!RegExp(r"\S+@\S+\.\S+").hasMatch(value)) {
-                    return Strings.enterValidEmail;
-                  }
-                  return null;
-                },
-                onSaved: (value) => _customer.email = value!,
-              ),
-              TextFormField(
-                enabled: !_isLoading,
-                initialValue: _customer.phone1,
-                decoration:
-                const InputDecoration(labelText: Strings.phone1),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  return null;
-                },
-                onSaved: (value) => _customer.phone1 = value!,
-              ),
-              TextFormField(
-                enabled: !_isLoading,
-                initialValue: _customer.phone2,
-                decoration:
-                const InputDecoration(labelText: Strings.phone2),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  return null;
-                },
-                onSaved: (value) => _customer.phone2 = value!,
-              ),
-              TextFormField(
-                enabled: !_isLoading,
-                initialValue: _customer.address,
-                decoration:
-                const InputDecoration(labelText: Strings.address),
-                maxLines: null,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return Strings.enterAddress;
-                  }
-                  return null;
-                },
+                controller: TextEditingController(text: _customer.address),
+                label: Strings.address,
+                validationMessage: Strings.enterAddress,
                 onSaved: (value) => _customer.address = value!,
               ),
+              ...getResponsiveRow([
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  controller: TextEditingController(text: _customer.phone1),
+                  validationMessage: Strings.enterCorrectNumber,
+                  label: Strings.phone1,
+                  keyboardType: TextInputType.phone,
+                  onSaved: (value) => _customer.phone1 = value!,
+                ),
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  controller: TextEditingController(text: _customer.phone2),
+                  label: Strings.phone2,
+                  keyboardType: TextInputType.phone,
+                  onSaved: (value) => _customer.phone2 = value!,
+                ),
+              ]),
+              CustomTextFormField(
+                enabled: !_isLoading,
+                controller: TextEditingController(text: _customer.email),
+                label: Strings.email,
+                keyboardType: TextInputType.emailAddress,
+                validationMessage: Strings.enterValidEmail,
+                onSaved: (value) => _customer.email = value!,
+              ),
+
               const SizedBox(height: 20.0),
               Row(
                 children: [
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            await _saveCustomerToFirestore();
-                          }
-                        },
-                        child: Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceEvenly,
-                          children: [
-                            const Text(Strings.save),
-                            if (_isLoading)
-                              const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(),
-                              ),
-                          ],
-                        ),
-                      ),
+                    child: DialogButton(
+                      buttonType: ButtonType.positive,
+                      title: Strings.save,
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                await _saveCustomerToFirestore();
+                              }
+                            },
                     ),
                   ),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.grey,
-                        ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: AlertDialog(
-                                  title: const Text(
-                                      Strings.dialogCancelTitle),
-                                  content: const Text(
-                                      Strings.dialogCancelMessage),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text(Strings.yes),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context),
-                                      child: const Text(Strings.no),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: const Text(Strings.cancel),
-                      ),
-                    ),
-                  ),
+                      child: DialogButton(
+                    title: Strings.cancel,
+                    buttonType: ButtonType.negative,
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: AlertDialog(
+                                    title:
+                                        const Text(Strings.dialogCancelTitle),
+                                    content:
+                                        const Text(Strings.dialogCancelMessage),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(Strings.yes),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text(Strings.no),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                  )),
                 ],
               ),
             ],

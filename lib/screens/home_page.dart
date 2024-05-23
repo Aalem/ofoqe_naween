@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
 import 'package:ofoqe_naween/screens/customers/customers.dart';
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NavigationProvider.instance.contentToDisplay = MoneyExchange();
+    NavigationProvider.instance.contentToDisplay = CustomersPage();
   }
 
   @override
@@ -70,7 +71,11 @@ class _HomePageState extends State<HomePage> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text(Strings.appName),
+      title: const Row(
+        children: [
+          Expanded(child: Text(Strings.appName, textAlign: TextAlign.center,style: TextStyle(fontWeight: FontWeight.bold),)),
+        ],
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.menu),
@@ -139,8 +144,10 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.money),
               title: const Text(Strings.moneyExchange),
               onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(MoneyExchange()),
+                  // Provider.of<NavigationProvider>(context, listen: false)
+                  //     .updatePage(MoneyExchange()),
+              Provider.of<NavigationProvider>(context, listen: false)
+                  .updatePage(UnderConstructionPage()),
             ),
             ListTile(
               leading: const Icon(Icons.logout),

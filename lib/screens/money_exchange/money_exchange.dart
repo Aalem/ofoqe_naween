@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
+import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:intl/intl.dart' as intl;
@@ -135,7 +136,19 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () {
-                          // Implement edit functionality
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Directionality(
+                                textDirection: TextDirection.rtl,
+                                child: AlertDialog(
+                                  title: const Text(Strings.addCustomerTitle),
+                                  content: AddTransaction(
+                                      transactionModel: TransactionModel.fromMap(transactionEntry, entry.id), id: entry.id),
+                                ),
+                              );
+                            },
+                          );
                         },
                       ),
                     ),

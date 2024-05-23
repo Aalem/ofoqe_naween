@@ -6,6 +6,7 @@ import 'package:ofoqe_naween/screens/home_page.dart';
 import 'package:ofoqe_naween/screens/ledger/add_to_ledger.dart';
 import 'package:ofoqe_naween/screens/login_page.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
+import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
       child: ChangeNotifierProvider<NavigationProvider>(
         create: (context) => NavigationProvider(),
         child: MaterialApp(
-          title: 'Flutter Demo',
+          title: Strings.appName,
           theme: AppTheme(context: context).getTheme(),
           initialRoute: '/home',
           // initialRoute: FirebaseAuth.instance.currentUser != null ? '/home' : '/login',

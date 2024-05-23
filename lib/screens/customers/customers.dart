@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
@@ -8,6 +7,8 @@ import 'package:ofoqe_naween/models/customer_model.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class CustomersPage extends StatefulWidget {
+  const CustomersPage({super.key});
+
   @override
   _CustomersPageState createState() => _CustomersPageState();
 }
@@ -110,10 +111,13 @@ class _CustomersPageState extends State<CustomersPage> {
                 number++;
                 return DataRow(
                   cells: [
-                    DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: 30),child: Text(number.toString()))),
+                    DataCell(ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 30),
+                        child: Text(number.toString()))),
                     DataCell(Text(customerEntry.company)),
                     DataCell(Text(customerEntry.name)),
                     DataCell(Text(
+                        textDirection: TextDirection.ltr,
                         '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
                     // DataCell(Text(customerEntry.email)),
                     DataCell(Text(customerEntry.address)),
@@ -207,97 +211,104 @@ class _CustomersPageState extends State<CustomersPage> {
         child: const Icon(Icons.add),
       ),
       appBar: AppBar(
-        title: const Text(Strings.customers),
+        title: const Row(
+          children: [
+            Expanded(child: Text(Strings.customers, textAlign: TextAlign.right,)),
+          ],
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _customerStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      body: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _customerStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: Column(
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width > 600
-                      ? MediaQuery.of(context).size.width / 2
-                      : MediaQuery.of(context).size.width,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: Strings.searchByName,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      prefixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          _search();
-                        },
-                      ),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          if (_searchController.text.isNotEmpty) {
-                            _searchController.clear();
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? MediaQuery.of(context).size.width / 2
+                        : MediaQuery.of(context).size.width,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: Strings.searchByName,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        prefixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () {
                             _search();
-                          }
-                        },
+                          },
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            if (_searchController.text.isNotEmpty) {
+                              _searchController.clear();
+                              _search();
+                            }
+                          },
+                        ),
                       ),
+                      onSubmitted: (value) {
+                        _search();
+                      },
                     ),
-                    onSubmitted: (value) {
-                      _search();
-                    },
                   ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topCenter,
                       child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: _buildDataTable(snapshot.data!),
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: _buildDataTable(snapshot.data!),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Visibility(
-                        visible: _currentPage > 1,
-                        child: TextButton(
-                          onPressed: _handlePreviousPage,
-                          child: const Text(Strings.previous),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Visibility(
+                          visible: _currentPage > 1,
+                          child: TextButton(
+                            onPressed: _handlePreviousPage,
+                            child: const Text(Strings.previous),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10.0),
-                      Text('${Strings.page} $_currentPage'),
-                      const SizedBox(width: 10.0),
-                      Visibility(
-                        visible: snapshot.data!.docs.length == _pageSize,
-                        child: TextButton(
-                          onPressed: _handleNextPage,
-                          child: const Text(Strings.next),
+                        const SizedBox(width: 10.0),
+                        Text('${Strings.page} $_currentPage'),
+                        const SizedBox(width: 10.0),
+                        Visibility(
+                          visible: snapshot.data!.docs.length == _pageSize,
+                          child: TextButton(
+                            onPressed: _handleNextPage,
+                            child: const Text(Strings.next),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
