@@ -4,7 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
-import 'package:ofoqe_naween/services/money_exchange_service.dart';
+import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
+// import 'package:ofoqe_naween/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:intl/intl.dart' as intl;
 
