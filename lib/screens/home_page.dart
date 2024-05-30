@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
 import 'package:ofoqe_naween/screens/customers/customers.dart';
@@ -46,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NavigationProvider.instance.contentToDisplay = CustomersPage();
+    NavigationProvider.instance.contentToDisplay = MoneyExchange();
   }
 
   @override
@@ -144,10 +143,10 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.money),
               title: const Text(Strings.moneyExchange),
               onTap: () =>
-                  // Provider.of<NavigationProvider>(context, listen: false)
-                  //     .updatePage(MoneyExchange()),
-              Provider.of<NavigationProvider>(context, listen: false)
-                  .updatePage(UnderConstructionPage()),
+                  Provider.of<NavigationProvider>(context, listen: false)
+                      .updatePage(MoneyExchange()),
+              // Provider.of<NavigationProvider>(context, listen: false)
+              //     .updatePage(UnderConstructionPage()),
             ),
             ListTile(
               leading: const Icon(Icons.logout),

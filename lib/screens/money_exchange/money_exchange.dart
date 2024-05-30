@@ -5,7 +5,7 @@ import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
-// import 'package:ofoqe_naween/services/money_exchange_service.dart';
+
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -95,7 +95,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                   .textTheme
                   .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: MaterialStateColor.resolveWith(
+              headingRowColor: WidgetStateColor.resolveWith(
                   (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
@@ -104,7 +104,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                 DataColumn(label: Text(Strings.description)),
                 DataColumn(label: Text(Strings.debit)),
                 DataColumn(label: Text(Strings.credit)),
-                // DataColumn(label: Text(Strings.balance)),
                 DataColumn(label: Text(Strings.edit)),
                 DataColumn(label: Text(Strings.delete)),
               ],
@@ -116,28 +115,25 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                     DataCell(ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 30),
                         child: Text(number.toString()))),
-                    // DataCell(Text(transactionEntry['jalali_date'] ?? '')),
-                    // DataCell(Text(Jalali.fromGregorian(transactionEntry['gregorian_date'].toDate()).toString()  ?? '')),
                     DataCell(Text(
-                      Jalali.fromDateTime(transactionEntry['gregorian_date'].toDate()).formatCompactDate().toString(),
+                      Jalali.fromDateTime(
+                              transactionEntry['gregorian_date'].toDate())
+                          .formatCompactDate()
+                          .toString(),
                     )),
-                    // DataCell(Text(transactionEntry['gregorian_date'] ?? '')),
-                    // DataCell(Text(
-                    //   intl.DateFormat('yyyy-MM-dd').format(transactionEntry['gregorian_date'] ?? DateTime.now()),
-                    // )),
                     DataCell(Text(
-                      intl.DateFormat('yyyy-MM-dd').format(transactionEntry['gregorian_date'].toDate()),
+                      intl.DateFormat('yyyy-MM-dd')
+                          .format(transactionEntry['gregorian_date'].toDate()),
                     )),
                     DataCell(Text(transactionEntry['description'] ?? '')),
                     DataCell(Text(transactionEntry['debit'].toString() ?? '')),
                     DataCell(Text(transactionEntry['credit'].toString() ?? '')),
-                    // DataCell(
-                    //     Text(transactionEntry['balance'].toString() ?? '')),
                     DataCell(
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () {
                           showDialog(
+                            barrierDismissible: false  ,
                             context: context,
                             builder: (BuildContext context) {
                               return Directionality(
@@ -223,7 +219,26 @@ class _MoneyExchangeState extends State<MoneyExchange> {
         child: const Icon(Icons.add),
       ),
       appBar: AppBar(
-        title: const Text(Strings.transactions),
+        title: StreamBuilder<double>(
+          stream: MoneyExchangeService.getBalanceStream(),
+          builder: (context, snapshot) {
+            double balance = snapshot.hasData ? snapshot.data! : 0.0;
+            return Row(
+              children: [
+                Expanded(child: Text('${Strings.balance}: ${balance.toInt()}', textAlign: TextAlign.left,)),
+                const Expanded(
+                  child: Text(Strings.transactions, textAlign: TextAlign.right),
+                ),
+              ],
+            );
+          },
+        ),
+        // title: const Row(
+        //   children: [
+        //     Expanded(child: Text(Strings.balance+': 0', textAlign: TextAlign.left,)),
+        //     Expanded(child: Text(Strings.transactions, textAlign: TextAlign.right,)),
+        //   ],
+        // ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _transactionStream,

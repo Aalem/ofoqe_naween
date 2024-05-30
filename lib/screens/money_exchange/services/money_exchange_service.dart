@@ -85,7 +85,14 @@ class MoneyExchangeService {
     }
   }
 
-
+  static Stream<double> getBalanceStream() {
+    return _firestore.collection('balance').doc('currentBalance').snapshots().map((snapshot) {
+      if (snapshot.exists) {
+        return snapshot.data()!['balance'] as double;
+      }
+      return 0.0;
+    });
+  }
 
   static Future<void> updateTransaction(String id, Map<String, dynamic> transactionData) async {
     try {

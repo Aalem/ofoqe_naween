@@ -78,7 +78,8 @@ class Strings{
   // Money Exchange
   static const String debit = 'رسید';
   static const String credit = 'برداشت';
-  static const String balance = 'بیلانس (باقی مانده)';
+  static const String balance = 'بیلانس';
+  static const String grandBalance = 'بیلانس عمومی';
   static const String enterDebit = 'مبلغ رسید را وارد کنید!';
   static const String enterCredit = 'مبلغ برداشت را وارد کنید!';
   static const String transactionAddedSuccessfully = 'تراکنش موفقانه ثبت گردید';
