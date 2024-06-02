@@ -5,7 +5,8 @@ import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
-
+import 'package:ofoqe_naween/theme/colors.dart';
+import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -18,6 +19,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _verticalScrollController = ScrollController();
+  final ScrollController _horizontalScrollController = ScrollController();
   int _currentPage = 1;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
   late DocumentSnapshot lastRecordedDocumentId;
@@ -28,6 +31,14 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     _transactionStream = _getTransactions();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _verticalScrollController.dispose();
+    _horizontalScrollController.dispose();
+    super.dispose();
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions(
       {bool isSearching = false}) {
     Query<Map<String, dynamic>> query = _firestore.collection('money_exchange');
@@ -36,7 +47,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       query = query
           .where('description', isGreaterThanOrEqualTo: _searchController.text)
           .where('description',
-              isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
+          isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
     } else {
       query = query.orderBy('date', descending: true);
     }
@@ -87,16 +98,16 @@ class _MoneyExchangeState extends State<MoneyExchange> {
             ),
             child: DataTable(
               border: TableBorder.all(
-                width: 0.1, // Adjust width as needed
-                color: Colors.grey, // Change color to your preference
+                width: 0.1,
+                color: Colors.grey,
                 style: BorderStyle.solid,
               ),
               headingTextStyle: Theme.of(context)
                   .textTheme
                   .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: WidgetStateColor.resolveWith(
-                  (states) => Theme.of(context).highlightColor),
+              headingRowColor: MaterialStateColor.resolveWith(
+                      (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
                 DataColumn(label: Text(Strings.jalaliDate)),
@@ -117,7 +128,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                         child: Text(number.toString()))),
                     DataCell(Text(
                       Jalali.fromDateTime(
-                              transactionEntry['gregorian_date'].toDate())
+                          transactionEntry['gregorian_date'].toDate())
                           .formatCompactDate()
                           .toString(),
                     )),
@@ -126,14 +137,13 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           .format(transactionEntry['gregorian_date'].toDate()),
                     )),
                     DataCell(Text(transactionEntry['description'] ?? '')),
-                    DataCell(Text(transactionEntry['debit'].toString() ?? '')),
-                    DataCell(Text(transactionEntry['credit'].toString() ?? '')),
+                    DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(transactionEntry['debit']))),
+                    DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(transactionEntry['credit']))),
                     DataCell(
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () {
                           showDialog(
-                            barrierDismissible: false  ,
                             context: context,
                             builder: (BuildContext context) {
                               return Directionality(
@@ -168,7 +178,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content:
-                                          Text('Failed to delete transaction'),
+                                      Text('Failed to delete transaction'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -225,7 +235,11 @@ class _MoneyExchangeState extends State<MoneyExchange> {
             double balance = snapshot.hasData ? snapshot.data! : 0.0;
             return Row(
               children: [
-                Expanded(child: Text('${Strings.balance}: ${balance.toInt()}', textAlign: TextAlign.left,)),
+                Expanded(child: Text(
+                  '${balance >= 0 ? '' : '- '}${Strings.balance}: ${GeneralFormatter.formatNumber(balance.abs().toString()).split('.')[0]}',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(color: balance >= 0 ? Colors.green : Colors.red),// Set text alignment to start
+                )),
                 const Expanded(
                   child: Text(Strings.transactions, textAlign: TextAlign.right),
                 ),
@@ -233,12 +247,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
             );
           },
         ),
-        // title: const Row(
-        //   children: [
-        //     Expanded(child: Text(Strings.balance+': 0', textAlign: TextAlign.left,)),
-        //     Expanded(child: Text(Strings.transactions, textAlign: TextAlign.right,)),
-        //   ],
-        // ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _transactionStream,
@@ -292,11 +300,23 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                 Expanded(
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
+                    child: Scrollbar(
+                      controller: _verticalScrollController,
+                      thumbVisibility: true,
+                      trackVisibility: true,
                       child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: _buildDataTable(snapshot.data!),
+                        controller: _verticalScrollController,
+                        scrollDirection: Axis.vertical,
+                        child: Scrollbar(
+                          controller: _horizontalScrollController,
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          child: SingleChildScrollView(
+                            controller: _horizontalScrollController,
+                            scrollDirection: Axis.horizontal,
+                            child: _buildDataTable(snapshot.data!),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -334,106 +354,3 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
-// import 'package:ofoqe_naween/values/strings.dart';
-//
-// class MoneyExchange extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           showDialog(
-//             context: context,
-//             builder: (BuildContext context) {
-//               return const Directionality(
-//                 textDirection: TextDirection.rtl,
-//                 child: AlertDialog(
-//                   title: Text(Strings.addTransactionTitle),
-//                   content: AddTransaction(),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//         child: const Icon(Icons.add),
-//       ),
-//       appBar: AppBar(
-//         title: Text(Strings.moneyExchange),
-//       ),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.stretch,
-//           children: [
-//             Container(
-//               decoration: BoxDecoration(
-//                 border: Border.all(color: Colors.grey.shade300),
-//                 borderRadius: BorderRadius.circular(5.0),
-//               ),
-//               child: DataTable(
-//                 columns: [
-//                   DataColumn(label: Text('Date')),
-//                   DataColumn(label: Text('Description')),
-//                   DataColumn(label: Text('Debit')),
-//                   DataColumn(label: Text('Credit')),
-//                   DataColumn(label: Text('Balance')),
-//                 ],
-//                 rows: [
-//                   DataRow(cells: [
-//                     DataCell(Text('2024-05-01')),
-//                     DataCell(Text('Transaction 1')),
-//                     DataCell(Text('100.00')),
-//                     DataCell(Text('-')),
-//                     DataCell(Text('100.00')),
-//                   ]),
-//                   DataRow(cells: [
-//                     DataCell(Text('2024-05-02')),
-//                     DataCell(Text('Transaction 2')),
-//                     DataCell(Text('-')),
-//                     DataCell(Text('50.00')),
-//                     DataCell(Text('50.00')),
-//                   ]),
-//                   // Add more rows as needed
-//                 ],
-//               ),
-//             ),
-//             SizedBox(height: 20),
-//             Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.stretch,
-//                 children: [
-//                   Text('Summary', style: TextStyle(fontSize: 18)),
-//                   SizedBox(height: 10),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text('Total Debit:'),
-//                       Text('150.00'), // Replace with actual total debit
-//                     ],
-//                   ),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text('Total Credit:'),
-//                       Text('50.00'), // Replace with actual total credit
-//                     ],
-//                   ),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text('Balance:'),
-//                       Text('100.00'), // Replace with actual balance
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

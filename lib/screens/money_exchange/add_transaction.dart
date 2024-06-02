@@ -1,6 +1,7 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
@@ -64,8 +65,10 @@ class _AddTransactionState extends State<AddTransaction> {
       _amountTextController.text = _amount.toString();
       _jalaliDateTextController.text =
           Jalali.fromDateTime(_transaction!.gregorianDate).formatCompactDate();
+      // _gregorianDateTextController.text =
+      //     intl.DateFormat('yyyy-MM-dd').format(_transaction!.gregorianDate);
       _gregorianDateTextController.text =
-          intl.DateFormat('yyyy-MM-dd').format(_transaction!.gregorianDate);
+          GeneralFormatter.formatDate(_transaction!.gregorianDate.toString());
 
       // Save initial values
       _initialDescription = _transaction!.description;
@@ -93,9 +96,17 @@ class _AddTransactionState extends State<AddTransaction> {
         _balance < 0 ? '${_balance.abs()} -' : _balance.toString();
   }
 
+  void formatBalance(String value) {
+    final formattedPrice = GeneralFormatter.formatAndRemoveTrailingZeros(double.parse(value));
+    _balanceTextController.value = TextEditingValue(
+      text: formattedPrice,
+      selection: TextSelection.collapsed(offset: formattedPrice.length),
+    );
+  }
+
   void _updateBalance(BalanceProvider balanceProvider) {
     _balance = _calculateBalance(_initialBalance, _amount);
-    _updateBalanceText();
+    formatBalance(_balance.toString());
     balanceProvider.updateBalance(_balance);
   }
 
@@ -124,6 +135,11 @@ class _AddTransactionState extends State<AddTransaction> {
   }
 
   bool _hasUnsavedChanges() {
+    // print('${_descriptionTextController.text} / $_initialDescription');
+    // print('${_amountTextController.text} / $_initialAmount');
+    // print('${_selectedPaymentType} / ${_initialPaymentType??0}');
+    // print('${_jalaliDateTextController.text} / $_initialJalaliDate');
+    // print('${_gregorianDateTextController.text} / $_initialGregorianDate');
     return _descriptionTextController.text != _initialDescription ||
         _amountTextController.text != _initialAmount.toString() ||
         _selectedPaymentType != _initialPaymentType ||
@@ -154,7 +170,6 @@ class _AddTransactionState extends State<AddTransaction> {
                       enabled: !_isLoading,
                       validationMessage: Strings.enterDescription,
                       onSaved: (value) => _description = value!,
-                      onChanged: (val) => setState(() {}),
                     ),
                     buildPaymentTypeSelection(balanceProvider),
                     buildAmountAndBalanceFields(balanceProvider),
@@ -206,8 +221,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   _jalaliDateTextController.text =
                       _selectedDate!.formatCompactDate();
                   _gregorianDateTextController.text =
-                      intl.DateFormat('yyyy-MM-dd')
-                          .format(_selectedDate!.toGregorian().toDateTime());
+                      GeneralFormatter.formatDate(_selectedDate!.toGregorian().toDateTime().toString());
                 });
               }
             },
@@ -245,8 +259,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   _jalaliDateTextController.text =
                       _selectedDate!.formatCompactDate();
                   _gregorianDateTextController.text =
-                      intl.DateFormat('yyyy-MM-dd')
-                          .format(_selectedDate!.toGregorian().toDateTime());
+                      GeneralFormatter.formatDate(_selectedDate!.toGregorian().toDateTime().toString());
                 });
               }
             },
@@ -333,11 +346,11 @@ class _AddTransactionState extends State<AddTransaction> {
             keyboardType: TextInputType.number,
             validationMessage: Strings.enterAmount,
             onSaved: (value) {
-              _amount = double.tryParse(value!)!;
+              String? rawValue = value?.replaceAll(',', '');
+              _amount = double.tryParse(rawValue!)!;
               _updateBalance(balanceProvider);
             },
             onChanged: (val) {
-              print('$val');
               val = val!.isEmpty ? '0' : val;
               setState(() {
                 _amount = double.tryParse(val!)!;
@@ -402,7 +415,9 @@ class _AddTransactionState extends State<AddTransaction> {
             title: Strings.cancel,
             onPressed: (!_isLoading && _hasUnsavedChanges())
                 ? () {
-              showDialog(
+              print('$_isLoading');
+              print(_hasUnsavedChanges());
+                    showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return Directionality(
