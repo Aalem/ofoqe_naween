@@ -86,10 +86,14 @@ class Strings{
   static const String transactionUpdatedSuccessfully = 'تراکنش موفقانه ویرایش گردید';
   static const String errorUpdatingTransaction = 'خطا در ثبت آپدیت اطلاعات صرافی!';
   static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
-  static const String addTransactionTitle = 'اضافه نمودن برداشت یا رسید صرافی';
+  static const String addTransaction = 'اضافه نمودن تراکنش';
+  static const String editTransaction = 'ویرایش تراکنش';
   static const String deleteTransaction = 'حذف تراکنش';
   static const String transactionNotFound = 'تراکنشی موجود نیست';
   static const String transactions = 'تراکنش ها';
   static const String searchByDescription = 'جستجو به اساس توضیحات';
   static const String paymentTypeNotSelected = 'لطفاً نوع تراکنش را انتخاب کنید!';
+  static const String dateRange = 'محدوده تاریخ';
+  static const String date = 'تاریخ';
+  static const String clear = 'clear';
 }

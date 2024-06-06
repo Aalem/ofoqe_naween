@@ -13,7 +13,7 @@ class CustomTextFormField extends StatefulWidget {
   final VoidCallback? onTap;
   final void Function(String?)? onSaved;
   final void Function(String?)? onChanged;
-  final bool canBeEmpty;
+  final bool canBeEmpty, displaySuffix;
   final int? minLength;
   final int? maxLength;
   final String? regexPattern;
@@ -39,6 +39,7 @@ class CustomTextFormField extends StatefulWidget {
     this.maxLength,
     this.regexPattern,
     this.customValidators,
+    this.displaySuffix = true
   });
 
   @override
@@ -191,8 +192,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         style: widget.textStyle,
         decoration: InputDecoration(
           labelText: widget.label,
-          suffixIcon:
-          widget.suffixIcon != null ? Icon(widget.suffixIcon) : clearIcon(),
+          suffixIcon: widget.displaySuffix ?
+          widget.suffixIcon != null  ? Icon(widget.suffixIcon) : clearIcon() : null,
         ),
         readOnly: widget.readOnly ?? false,
         onTap: widget.onTap,

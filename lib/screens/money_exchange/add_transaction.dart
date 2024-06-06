@@ -170,6 +170,11 @@ class _AddTransactionState extends State<AddTransaction> {
                       enabled: !_isLoading,
                       validationMessage: Strings.enterDescription,
                       onSaved: (value) => _description = value!,
+                      onChanged: (val){
+                        setState(() {
+
+                        });
+                      },
                     ),
                     buildPaymentTypeSelection(balanceProvider),
                     buildAmountAndBalanceFields(balanceProvider),
