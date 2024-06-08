@@ -5,4 +5,6 @@ class AppColors{
   static Color textFieldBGColor = Colors.white;
   static Color textFocusedBorderColor = Colors.grey;
   static Color errorColor = Colors.red.shade900;
+  static Color appBarBG = Colors.grey.shade200;
+
 }

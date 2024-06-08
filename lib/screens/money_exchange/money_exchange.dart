@@ -536,6 +536,8 @@
 //     );
 //   }
 // }
+import 'dart:math';
+
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -569,7 +571,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   int _currentPage = 1;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
   late DocumentSnapshot lastRecordedDocumentId;
-  DateTimeRange? _selectedDateRange;
+  // DateTimeRange? _selectedDateRange;
+   JalaliRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -609,8 +612,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       query = query.where('gregorian_date', isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
-          .where('date', isGreaterThanOrEqualTo: _selectedDateRange!.start)
-          .where('date', isLessThanOrEqualTo: _selectedDateRange!.end);
+          .where('gregorian_date', isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
+          .where('gregorian_date', isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
     // Filter by debit/credit if a checkbox is selected, unless both are checked
@@ -806,24 +809,18 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
+    final JalaliRange? picker = await showDariDateRangePicker(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      initialDateRange: _selectedDateRange ??
-          DateTimeRange(
-            start: DateTime.now().subtract(const Duration(days: 7)),
-            end: DateTime.now(),
-          ),
+      firstDate: Jalali(Jalali.now().year, Jalali.now().month-1),
+      lastDate: Jalali.now(),
     );
-    if (picked != null) {
-      setState(() {
-        _selectedDateRange = picked;
-        _dateRangeController.text =
-            '${intl.DateFormat('yyyy-MM-dd').format(picked.start)} - ${intl.DateFormat('yyyy-MM-dd').format(picked.end)}';
-      });
-      _search();
+
+    if(picker != null){
+      _selectedDateRange = picker;
+      _dateRangeController.text = '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
+      _specificDateController.clear();
     }
+    _search();
   }
 
   @override
@@ -853,10 +850,14 @@ class _MoneyExchangeState extends State<MoneyExchange> {
             double balance = snapshot.hasData ? snapshot.data! : 0.0;
             return Row(
               children: [
-                Expanded(child: Text(
+                Expanded(
+                    child: Text(
                   '${balance >= 0 ? '' : '- '}${Strings.balance}: ${GeneralFormatter.formatNumber(balance.abs().toString()).split('.')[0]}',
                   textAlign: TextAlign.start,
-                  style: TextStyle(color: balance >= 0 ? Colors.green : Colors.red),// Set text alignment to start
+                  style: TextStyle(
+                      color: balance >= 0
+                          ? Colors.green
+                          : Colors.red), // Set text alignment to start
                 )),
                 const Expanded(
                   child: Text(Strings.transactions, textAlign: TextAlign.right),
@@ -883,10 +884,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
             child: Column(
               children: [
                 const SizedBox(height: 18),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width > 600
-                      ? MediaQuery.of(context).size.width / 2
-                      : MediaQuery.of(context).size.width,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
                       Expanded(
@@ -918,39 +917,36 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           },
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.filter_list),
-                        onPressed: () {
-                          setState(() {
-                            _showFilters = !_showFilters;
-                            if (!_showFilters) {
-                              _clearFilters();
-                            }
-                          });
-                        },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.filter_list),
+                          onPressed: () {
+                            setState(() {
+                              _showFilters = !_showFilters;
+                              if (!_showFilters) {
+                                _clearFilters();
+                              }
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ),
-                if (_showFilters) const SizedBox(height: 10),
+                // if (_showFilters) const SizedBox(height: 10),
                 if (_showFilters)
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 600
-                        ? MediaQuery.of(context).size.width / 2
-                        : MediaQuery.of(context).size.width,
+                  Container(
+                    color: AppColors.appBarBG,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
                         Expanded(
+                          flex: 2,
                           child: CustomTextFormField(
                             label: Strings.dateRange,
                             controller: _dateRangeController,
                             readOnly: true,
-                            // decoration: InputDecoration(
-                            //   hintText: Strings.dateRange,
-                            //   border: OutlineInputBorder(
-                            //     borderRadius: BorderRadius.circular(10.0),
-                            //   ),
-                            // ),
                             onTap: () async {
                               await _pickDateRange(context);
                             },
@@ -958,6 +954,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           ),
                         ),
                         Expanded(
+                          flex: 2,
                           child: CustomTextFormField(
                             label: Strings.date,
                             displaySuffix: false,
@@ -987,6 +984,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                                 },
                               );
                               if (picked != null) {
+                                _dateRangeController.clear();
                                 _specificDateController.text =
                                     picked.formatCompactDate();
                                 _search();
@@ -994,54 +992,57 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                             },
                           ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isDebitChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isDebitChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.debit),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isCreditChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isCreditChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.credit),
-                              ],
-                            ),
-                          ],
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _isDebitChecked,
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        _isDebitChecked = value!;
+                                      });
+                                    },
+                                  ),
+                                  const Text(Strings.debit),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _isCreditChecked,
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        _isCreditChecked = value!;
+                                      });
+                                    },
+                                  ),
+                                  const Text(Strings.credit),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: _search,
-                              icon: const Icon(Icons.search),
-                            ),
-                            IconButton(
-                              onPressed: _clearFilters,
-                              icon: const Icon(Icons.clear),
-                            ),
-                          ],
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                onPressed: _search,
+                                icon: const Icon(Icons.search),
+                              ),
+                              IconButton(
+                                onPressed: _clearFilters,
+                                icon: const Icon(Icons.clear),
+                              ),
+                            ],
+                          ),
                         ),
-
                       ],
                     ),
                   ),
-                const SizedBox(height: 10),
                 Expanded(
                   child: Align(
                     alignment: Alignment.topCenter,

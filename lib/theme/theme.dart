@@ -12,7 +12,7 @@ class AppTheme {
     return ThemeData(
       appBarTheme: Theme.of(context).appBarTheme.copyWith(
           elevation: 0,
-          backgroundColor: Colors.grey.shade200,
+          backgroundColor: AppColors.appBarBG,
           titleTextStyle: const TextStyle(color: Colors.black87, fontSize: 20)
       ),
       drawerTheme: Theme.of(context).drawerTheme.copyWith(
