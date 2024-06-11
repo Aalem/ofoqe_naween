@@ -32,8 +32,9 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   int _currentPage = 1;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
   late DocumentSnapshot lastRecordedDocumentId;
+
   // DateTimeRange? _selectedDateRange;
-   JalaliRange? _selectedDateRange;
+  JalaliRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -61,20 +62,22 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       query = query
           .where('description', isGreaterThanOrEqualTo: _searchController.text)
           .where('description',
-          isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
+              isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
     }
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
       Jalali jalaliDate =
-      DateTimeUtils.stringToJalaliDate(_specificDateController.text);
+          DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
 
       query = query.where('gregorian_date', isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
-          .where('gregorian_date', isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
-          .where('gregorian_date', isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
+          .where('gregorian_date',
+              isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
+          .where('gregorian_date',
+              isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
     // Filter by debit/credit if a checkbox is selected, unless both are checked
@@ -146,7 +149,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       lastRecordedDocumentId = snapshot.docs.last;
 
       var filteredDocs = snapshot.docs;
-      if((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null){
+      if ((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null) {
         filteredDocs = snapshot.docs.where((doc) {
           return doc.data()['debit'] > 0;
         }).toList();
@@ -156,7 +159,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
           !(_isDebitChecked || _isCreditChecked)) {
         filteredDocs.sort((a, b) => b['date'].compareTo(a['date']));
       }
-
 
       return Column(
         children: [
@@ -197,16 +199,20 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                         constraints: const BoxConstraints(maxWidth: 30),
                         child: Text(number.toString()))),
                     DataCell(Text(
-                      Jalali.fromDateTime(
-                              transactionEntry[MoneyExchangeFields.gregorianDate].toDate())
+                      Jalali.fromDateTime(transactionEntry[
+                                  MoneyExchangeFields.gregorianDate]
+                              .toDate())
                           .formatCompactDate()
                           .toString(),
                     )),
                     DataCell(Text(
-                      intl.DateFormat('yyyy-MM-dd')
-                          .format(transactionEntry[MoneyExchangeFields.gregorianDate].toDate()),
+                      intl.DateFormat('yyyy-MM-dd').format(
+                          transactionEntry[MoneyExchangeFields.gregorianDate]
+                              .toDate()),
                     )),
-                    DataCell(Text(transactionEntry[MoneyExchangeFields.description] ?? '')),
+                    DataCell(Text(
+                        transactionEntry[MoneyExchangeFields.description] ??
+                            '')),
                     DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
                         transactionEntry[MoneyExchangeFields.debit]))),
                     DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
@@ -242,7 +248,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           builder: (BuildContext context) {
                             return ConfirmationDialog(
                               title: Strings.deleteTransaction +
-                                  transactionEntry[MoneyExchangeFields.description],
+                                  transactionEntry[
+                                      MoneyExchangeFields.description],
                               message: Strings.deleteTransactionMessage,
                               onConfirm: () async {
                                 try {
@@ -284,16 +291,21 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
+    Jalali currentDate = Jalali.now();
     final JalaliRange? picker = await showDariDateRangePicker(
-
       context: context,
-      firstDate: Jalali(Jalali.now().year, Jalali.now().month-1),
-      lastDate: Jalali.now(),
+      initialDateRange: JalaliRange(
+        start: Jalali.fromDateTime(DateTime.now().subtract(const Duration(days: 4))),
+        end: currentDate,
+      ),
+      firstDate: Jalali(currentDate.year - 10),
+      lastDate: currentDate,
     );
 
-    if(picker != null){
+    if (picker != null) {
       _selectedDateRange = picker;
-      _dateRangeController.text = '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
+      _dateRangeController.text =
+          '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
       _specificDateController.clear();
     }
     _search();
@@ -363,7 +375,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                 Container(
                   color: AppColors.appBarBG,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
                       children: [
                         Expanded(
@@ -377,7 +390,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                               prefixIcon: IconButton(
                                 icon: const Icon(Icons.search),
                                 onPressed: () {
-                                  _clearFilters(keepDescription:true);
+                                  _clearFilters(keepDescription: true);
                                   _search();
                                 },
                               ),
@@ -392,7 +405,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                               ),
                             ),
                             onSubmitted: (value) {
-                              _clearFilters(keepDescription:true);
+                              _clearFilters(keepDescription: true);
                               _search();
                             },
                           ),
