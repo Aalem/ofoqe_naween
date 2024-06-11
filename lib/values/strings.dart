@@ -70,7 +70,7 @@ class Strings{
   static const String search = 'جستجو';
   static const String clearFilter = 'برداشتن فیلتر';
   static const String customerNotFound = 'مشتری موجود نیست!';
-  static const String dialogDeleteMessage = 'آیا مطمئن هستید میخواهیید مشتری را حذف کنید؟';
+  static const String customerDeleteMessage = 'آیا مطمئن هستید میخواهیید مشتری را حذف کنید؟';
   static const String dialogDeleteTitle = 'حذف مشتری: ';
   static const String customerUpdatedSuccessfully = 'مشتری موفقانه آپدیت شد';
   static const String errorUpdatingCustomer = 'خطا در آپدیت مشتری';
@@ -88,7 +88,8 @@ class Strings{
   static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
   static const String addTransaction = 'اضافه نمودن تراکنش';
   static const String editTransaction = 'ویرایش تراکنش';
-  static const String deleteTransaction = 'حذف تراکنش';
+  static const String deleteTransaction = 'حذف تراکنش: ';
+  static const String deleteTransactionMessage = 'آیا مطمئن هستید میخواهیید این تراکنش را حذف کنید؟';
   static const String transactionNotFound = 'تراکنشی موجود نیست';
   static const String transactions = 'تراکنش ها';
   static const String searchByDescription = 'جستجو به اساس توضیحات';

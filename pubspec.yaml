@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  rxdart: ^0.27.2
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -44,6 +45,7 @@ dependencies:
   dari_datetime_picker:
     git:
       url: https://github.com/Aalem/afghan-datetime-picker.git
+      ref: 0a18c6b5fc14e29dcdf3040178a9b52ed0fc148d
 
 dev_dependencies:
   flutter_test:

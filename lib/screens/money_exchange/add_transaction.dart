@@ -1,6 +1,5 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
@@ -44,7 +43,7 @@ class _AddTransactionState extends State<AddTransaction> {
   final TextEditingController _balanceTextController = TextEditingController();
   late String _initialDescription = '';
   late double _initialAmount = 0;
-  late MEPaymentType? _initialPaymentType;
+  MEPaymentType? _initialPaymentType;
   late String _initialJalaliDate;
   late String _initialGregorianDate;
 
@@ -65,8 +64,6 @@ class _AddTransactionState extends State<AddTransaction> {
       _amountTextController.text = _amount.toString();
       _jalaliDateTextController.text =
           Jalali.fromDateTime(_transaction!.gregorianDate).formatCompactDate();
-      // _gregorianDateTextController.text =
-      //     intl.DateFormat('yyyy-MM-dd').format(_transaction!.gregorianDate);
       _gregorianDateTextController.text =
           GeneralFormatter.formatDate(_transaction!.gregorianDate.toString());
 
@@ -97,9 +94,10 @@ class _AddTransactionState extends State<AddTransaction> {
   }
 
   void formatBalance(String value) {
-    final formattedPrice = GeneralFormatter.formatAndRemoveTrailingZeros(double.parse(value));
+    final formattedPrice =
+        GeneralFormatter.formatAndRemoveTrailingZeros(double.parse(value));
     _balanceTextController.value = TextEditingValue(
-      text: formattedPrice,
+      text: formattedPrice.isEmpty ? 0.toString() : formattedPrice,
       selection: TextSelection.collapsed(offset: formattedPrice.length),
     );
   }
@@ -170,10 +168,8 @@ class _AddTransactionState extends State<AddTransaction> {
                       enabled: !_isLoading,
                       validationMessage: Strings.enterDescription,
                       onSaved: (value) => _description = value!,
-                      onChanged: (val){
-                        setState(() {
-
-                        });
+                      onChanged: (val) {
+                        setState(() {});
                       },
                     ),
                     buildPaymentTypeSelection(balanceProvider),
@@ -226,7 +222,8 @@ class _AddTransactionState extends State<AddTransaction> {
                   _jalaliDateTextController.text =
                       _selectedDate!.formatCompactDate();
                   _gregorianDateTextController.text =
-                      GeneralFormatter.formatDate(_selectedDate!.toGregorian().toDateTime().toString());
+                      GeneralFormatter.formatDate(
+                          _selectedDate!.toGregorian().toDateTime().toString());
                 });
               }
             },
@@ -264,7 +261,8 @@ class _AddTransactionState extends State<AddTransaction> {
                   _jalaliDateTextController.text =
                       _selectedDate!.formatCompactDate();
                   _gregorianDateTextController.text =
-                      GeneralFormatter.formatDate(_selectedDate!.toGregorian().toDateTime().toString());
+                      GeneralFormatter.formatDate(
+                          _selectedDate!.toGregorian().toDateTime().toString());
                 });
               }
             },
@@ -347,7 +345,7 @@ class _AddTransactionState extends State<AddTransaction> {
             controller: _amountTextController,
             label: Strings.amount,
             suffixIcon: Icons.attach_money,
-            enabled: !_isLoading,
+            enabled: !_isLoading && _selectedPaymentType != null,
             keyboardType: TextInputType.number,
             validationMessage: Strings.enterAmount,
             onSaved: (value) {
@@ -420,34 +418,34 @@ class _AddTransactionState extends State<AddTransaction> {
             title: Strings.cancel,
             onPressed: (!_isLoading && _hasUnsavedChanges())
                 ? () {
-              print('$_isLoading');
-              print(_hasUnsavedChanges());
+                    print('$_isLoading');
+                    print(_hasUnsavedChanges());
                     showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: AlertDialog(
-                      title: const Text(Strings.dialogCancelTitle),
-                      content: const Text(Strings.dialogCancelMessage),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.pop(context);
-                          },
-                          child: const Text(Strings.yes),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(Strings.no),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            }
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: AlertDialog(
+                            title: const Text(Strings.dialogCancelTitle),
+                            content: const Text(Strings.dialogCancelMessage),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                },
+                                child: const Text(Strings.yes),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text(Strings.no),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
                 : null,
           ),
         ),

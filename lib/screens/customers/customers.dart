@@ -153,7 +153,7 @@ class _CustomersPageState extends State<CustomersPage> {
                             return ConfirmationDialog(
                               title: Strings.dialogDeleteTitle +
                                   customerEntry.name,
-                              message: Strings.dialogDeleteMessage,
+                              message: Strings.customerDeleteMessage,
                               onConfirm: () async {
                                 try {
                                   await CustomerService.deleteCustomer(
