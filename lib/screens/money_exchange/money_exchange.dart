@@ -2,16 +2,18 @@ import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
+import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
+import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/utilities/date_time_utils.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
+import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/strings.dart';
-import 'package:intl/intl.dart' as intl;
 
 class MoneyExchange extends StatefulWidget {
   @override
@@ -178,7 +180,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                   .textTheme
                   .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: MaterialStateColor.resolveWith(
+              headingRowColor: WidgetStateColor.resolveWith(
                   (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
@@ -206,7 +208,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           .toString(),
                     )),
                     DataCell(Text(
-                      intl.DateFormat('yyyy-MM-dd').format(
+                      GeneralFormatter.formatDate(
                           transactionEntry[MoneyExchangeFields.gregorianDate]
                               .toDate()),
                     )),
@@ -295,7 +297,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     final JalaliRange? picker = await showDariDateRangePicker(
       context: context,
       initialDateRange: JalaliRange(
-        start: Jalali.fromDateTime(DateTime.now().subtract(const Duration(days: 4))),
+        start: Jalali.fromDateTime(
+            DateTime.now().subtract(const Duration(days: 4))),
         end: currentDate,
       ),
       firstDate: Jalali(currentDate.year - 10),
@@ -322,7 +325,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
               return const Directionality(
                 textDirection: TextDirection.rtl,
                 child: AlertDialog(
-                  title: const Text(Strings.addTransaction),
+                  title: Text(Strings.addTransaction),
                   content: AddTransaction(),
                 ),
               );
@@ -416,9 +419,17 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                             icon: const Icon(Icons.filter_list),
                             onPressed: () {
                               setState(() {
-                                _showFilters = !_showFilters;
-                                if (!_showFilters) {
-                                  _clearFilters();
+                                if (ScreenSize.isPhone(context)) {
+                                  showDialog(
+                                      builder: (context) {
+                                        return _buildFilterDialog(context);
+                                      },
+                                      context: context);
+                                } else {
+                                  _showFilters = !_showFilters;
+                                  if (!_showFilters) {
+                                    _clearFilters();
+                                  }
                                 }
                               });
                             },
@@ -429,7 +440,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                   ),
                 ),
                 // if (_showFilters) const SizedBox(height: 10),
-                if (_showFilters)
+                if (_showFilters && ScreenSize.getWidth(context) >= 1200)
                   Container(
                     color: AppColors.appBarBG,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -593,4 +604,198 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       ),
     );
   }
+
+  Widget _buildFilterDialog(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text(Strings.filter),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  CustomTextFormField(
+                    label: Strings.date,
+                    controller: _specificDateController,
+                    onTap: () async {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      var pickedDate = await showDariDatePicker(
+                        context: context,
+                        initialDate: Jalali.now(),
+                        firstDate: Jalali(1385, 8),
+                        lastDate: Jalali.now(),
+                      );
+                      if (pickedDate != null) {
+                        _specificDateController.text = pickedDate.formatCompactDate();
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextFormField(
+                    label: Strings.dateRange,
+                    controller: _dateRangeController,
+                    onTap: () async {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      var pickedDateRange = await showDariDateRangePicker(
+                        context: context,
+                        initialDateRange: JalaliRange(
+                          start: Jalali.now().withDay(1),
+                          end: Jalali.now(),
+                        ),
+                        firstDate: Jalali(1385, 8),
+                        lastDate: Jalali.now(),
+                      );
+                      if (pickedDateRange != null) {
+                        _selectedDateRange = pickedDateRange;
+                        _dateRangeController.text =
+                        "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _isDebitChecked,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _isDebitChecked = value!;
+                          });
+                        },
+                      ),
+                      const Text(Strings.debit),
+                      const SizedBox(width: 10),
+                      Checkbox(
+                        value: _isCreditChecked,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _isCreditChecked = value!;
+                          });
+                        },
+                      ),
+                      const Text(Strings.credit),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              DialogButton(
+                title: Strings.filter,
+                buttonType: ButtonType.positive,
+                onPressed: () {
+                  _search();
+                  Navigator.of(context).pop();
+                },
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _clearFilters();
+                  Navigator.of(context).pop();
+                },
+                child: const Text(Strings.clearFilter),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+
+  // Widget _buildFilterDialog(BuildContext context) {
+  //   return Directionality(
+  //     textDirection: TextDirection.rtl,
+  //     child: AlertDialog(
+  //       title: const Text(Strings.filter),
+  //       content: SingleChildScrollView(
+  //         child: Column(
+  //           children: [
+  //             CustomTextFormField(
+  //               label: Strings.date,
+  //               controller: _specificDateController,
+  //               onTap: () async {
+  //                 FocusScope.of(context).requestFocus(FocusNode());
+  //                 var pickedDate = await showDariDatePicker(
+  //                   context: context,
+  //                   initialDate: Jalali.now(),
+  //                   firstDate: Jalali(1385, 8),
+  //                   lastDate: Jalali.now(),
+  //                 );
+  //                 if (pickedDate != null) {
+  //                   _specificDateController.text = pickedDate.formatCompactDate();
+  //                 }
+  //               },
+  //             ),
+  //             const SizedBox(height: 10),
+  //             CustomTextFormField(
+  //               label: Strings.dateRange,
+  //               controller: _dateRangeController,
+  //               onTap: () async {
+  //                 FocusScope.of(context).requestFocus(FocusNode());
+  //                 var pickedDateRange = await showDariDateRangePicker(
+  //                   context: context,
+  //                   initialDateRange: JalaliRange(
+  //                     start: Jalali.now().withDay(1),
+  //                     end: Jalali.now(),
+  //                   ),
+  //                   firstDate: Jalali(1385, 8),
+  //                   lastDate: Jalali.now(),
+  //                 );
+  //                 if (pickedDateRange != null) {
+  //                   _selectedDateRange = pickedDateRange;
+  //                   _dateRangeController.text =
+  //                       "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+  //                 }
+  //               },
+  //             ),
+  //             const SizedBox(height: 10),
+  //             Row(
+  //               children: [
+  //                 Checkbox(
+  //                   value: _isDebitChecked,
+  //                   onChanged: (bool? value) {
+  //                     setState(() {
+  //                       _isDebitChecked = value!;
+  //                       print('$_isDebitChecked');
+  //                     });
+  //                   },
+  //                 ),
+  //                 const Text(Strings.debit),
+  //                 const SizedBox(width: 10),
+  //                 Checkbox(
+  //                   value: _isCreditChecked,
+  //                   onChanged: (bool? value) {
+  //                     setState(() {
+  //                       _isCreditChecked = value!;
+  //                     });
+  //                   },
+  //                 ),
+  //                 const Text(Strings.credit),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //       actions: [
+  //         DialogButton(
+  //           title: Strings.filter,
+  //           buttonType: ButtonType.positive,
+  //           onPressed: () {
+  //             _search();
+  //             Navigator.of(context).pop();
+  //           },
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () {
+  //             _clearFilters();
+  //             Navigator.of(context).pop();
+  //           },
+  //           child: const Text(Strings.clearFilter),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

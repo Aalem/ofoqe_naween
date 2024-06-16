@@ -94,7 +94,8 @@ class Strings{
   static const String transactions = 'تراکنش ها';
   static const String searchByDescription = 'جستجو به اساس توضیحات';
   static const String paymentTypeNotSelected = 'لطفاً نوع تراکنش را انتخاب کنید!';
+  static const String somethingWentWrong = 'خطای غیر منتظره';
   static const String dateRange = 'محدوده تاریخ';
   static const String date = 'تاریخ';
-  static const String clear = 'clear';
+  static const String filter = 'فیلتر';
 }

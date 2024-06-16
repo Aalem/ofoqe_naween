@@ -12,15 +12,22 @@ class GeneralFormatter {
       return value;
     }
   }
-
-  static String formatDate(String value, {String pattern = 'yyyy-MM-dd'}) {
+  static String formatDate(dynamic value, {String pattern = 'yyyy-MM-dd'}) {
     try {
-      final date = DateTime.parse(value);
+      DateTime date;
+      if (value is DateTime) {
+        date = value;
+      } else if (value is String) {
+        date = DateTime.parse(value);
+      } else {
+        throw ArgumentError('Invalid date type. Only DateTime or String is allowed.');
+      }
+
       final dateFormat = intl.DateFormat(pattern);
       return dateFormat.format(date);
     } catch (e) {
       print('Error formatting date: $e');
-      return value;
+      return value.toString();
     }
   }
 

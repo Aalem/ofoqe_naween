@@ -3,6 +3,7 @@ import 'package:ofoqe_naween/providers/navigation_provider.dart';
 import 'package:ofoqe_naween/screens/customers/customers.dart';
 import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
 import 'package:ofoqe_naween/screens/page_under_construction.dart';
+import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 
@@ -52,7 +53,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: MediaQuery.of(context).size.width < 600
+      appBar: ScreenSize.isPhone(context)
           ? _buildAppBar(context)
           : null,
       endDrawer: _buildDrawer(context),
@@ -60,7 +61,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           contentWidget(),
           Visibility(
-            visible: MediaQuery.of(context).size.width > 600,
+            visible: !ScreenSize.isPhone(context),
             child: _buildDrawer(context),
           ),
         ],
