@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/customers/add_customer.dart';
-import 'package:ofoqe_naween/services/customer_service.dart';
+import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
+import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/models/customer_model.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
+import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class CustomersPage extends StatefulWidget {
@@ -34,16 +35,10 @@ class _CustomersPageState extends State<CustomersPage> {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers(
       {bool isSearching = false}) {
-    Query<Map<String, dynamic>> query = _firestore.collection('customers');
+    Query<Map<String, dynamic>> query =
+        _firestore.collection(CollectionNames.customers);
 
-    if (_searchController.text.isNotEmpty) {
-      query = query
-          .where('company', isGreaterThanOrEqualTo: _searchController.text)
-          .where('company',
-              isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
-    } else {
-      query = query.orderBy('date', descending: true);
-    }
+    query = query.orderBy(CustomerFields.date, descending: true);
 
     if (_currentPage > 1) {
       query = query.startAfterDocument(lastRecordedDocumentId);
@@ -77,14 +72,15 @@ class _CustomersPageState extends State<CustomersPage> {
     });
   }
 
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(QuerySnapshot<Map<String, dynamic>> snapshot) {
-      String searchText = _searchController.text.toLowerCase();
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(
+      QuerySnapshot<Map<String, dynamic>> snapshot) {
+    String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
-        String company = doc.data()['company']?.toString().toLowerCase() ?? '';
-        String name = doc.data()['name']?.toString().toLowerCase() ?? '';
+      String company = doc.data()[CustomerFields.company]?.toString().toLowerCase() ?? '';
+      String name = doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
 
-        return company.contains(searchText) || name.contains(searchText);
-      }).toList();
+      return company.contains(searchText) || name.contains(searchText);
+    }).toList();
   }
 
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
@@ -270,9 +266,7 @@ class _CustomersPageState extends State<CustomersPage> {
                         icon: const Icon(Icons.search),
                         onPressed: () {
                           // _search();
-                          setState(() {
-
-                          });
+                          setState(() {});
                         },
                       ),
                       suffixIcon: IconButton(
@@ -287,9 +281,7 @@ class _CustomersPageState extends State<CustomersPage> {
                     ),
                     onSubmitted: (value) {
                       // _search();
-                      setState(() {
-
-                      });
+                      setState(() {});
                     },
                   ),
                 ),

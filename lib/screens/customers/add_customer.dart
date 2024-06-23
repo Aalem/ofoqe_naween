@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/models/customer_model.dart';
-import 'package:ofoqe_naween/services/customer_service.dart';
+import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/values/strings.dart';
@@ -95,7 +95,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                   controller: TextEditingController(text: _customer.phone1),
                   validationMessage: Strings.enterCorrectNumber,
                   label: Strings.phone1,
-                  // canBeEmpty: true,
+                  canBeEmpty: true,
                   keyboardType: TextInputType.phone,
                   onSaved: (value) => _customer.phone1 = value!,
                 ),
@@ -103,9 +103,9 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _customer.phone2),
                   label: Strings.phone2,
+                  canBeEmpty: true,
                   keyboardType: TextInputType.phone,
                   validationMessage: Strings.enterCorrectNumber,
-                  // canBeEmpty: true,
                   onSaved: (value) => _customer.phone2 = value!,
                 ),
               ]),
@@ -115,7 +115,6 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 label: Strings.email,
                 keyboardType: TextInputType.emailAddress,
                 validationMessage: Strings.enterValidEmail,
-                // canBeEmpty: true,
                 onSaved: (value) => _customer.email = value!,
               ),
 

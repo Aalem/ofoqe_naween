@@ -14,6 +14,7 @@ import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/utilities/date_time_utils.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
+import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class MoneyExchange extends StatefulWidget {
@@ -36,7 +37,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
   late DocumentSnapshot lastRecordedDocumentId;
 
-  // DateTimeRange? _selectedDateRange;
   JalaliRange? _selectedDateRange;
 
   @override
@@ -58,15 +58,15 @@ class _MoneyExchangeState extends State<MoneyExchange> {
   Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions({
     bool isSearching = false,
   }) {
-    Query<Map<String, dynamic>> query = _firestore.collection('money_exchange');
+    Query<Map<String, dynamic>> query = _firestore.collection(CollectionNames.moneyExchange);
 
     // Apply search filter if needed
-    if (_searchController.text.isNotEmpty) {
-      query = query
-          .where('description', isGreaterThanOrEqualTo: _searchController.text)
-          .where('description',
-              isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
-    }
+    // if (_searchController.text.isNotEmpty) {
+    //   query = query
+    //       .where(MoneyExchangeFields.description, isGreaterThanOrEqualTo: _searchController.text)
+    //       .where(MoneyExchangeFields.description,
+    //           isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
+    // }
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
@@ -74,21 +74,21 @@ class _MoneyExchangeState extends State<MoneyExchange> {
           DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
 
-      query = query.where('gregorian_date', isEqualTo: specificDate);
+      query = query.where(MoneyExchangeFields.gregorianDate, isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
-          .where('gregorian_date',
+          .where(MoneyExchangeFields.gregorianDate,
               isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
-          .where('gregorian_date',
+          .where(MoneyExchangeFields.gregorianDate,
               isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
     // Filter by debit/credit if a checkbox is selected, unless both are checked
     if (!(_isDebitChecked && _isCreditChecked)) {
       if (_isDebitChecked) {
-        query = query.where('debit', isGreaterThan: 0);
+        query = query.where(MoneyExchangeFields.debit, isGreaterThan: 0);
       } else if (_isCreditChecked) {
-        query = query.where('credit', isGreaterThan: 0);
+        query = query.where(MoneyExchangeFields.credit, isGreaterThan: 0);
       }
     }
 
@@ -154,13 +154,18 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       var filteredDocs = snapshot.docs;
       if ((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null) {
         filteredDocs = snapshot.docs.where((doc) {
-          return doc.data()['debit'] > 0;
+          return doc.data()[MoneyExchangeFields.debit] > 0;
+        }).toList();
+      }
+      if (_searchController.text.isNotEmpty) {
+        filteredDocs = snapshot.docs.where((doc) {
+          return doc.data()[MoneyExchangeFields.description].contains(_searchController.text);
         }).toList();
       }
       if (_specificDateController.text.isEmpty &&
           _selectedDateRange == null &&
           !(_isDebitChecked || _isCreditChecked)) {
-        filteredDocs.sort((a, b) => b['date'].compareTo(a['date']));
+        filteredDocs.sort((a, b) => b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
       }
 
       return Column(
@@ -353,7 +358,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           : Colors.red), // Set text alignment to start
                 )),
                 const Expanded(
-                  child: Text(Strings.transactions, textAlign: TextAlign.right),
+                  child: Text(Strings.moneyExchange, textAlign: TextAlign.right),
                 ),
               ],
             );

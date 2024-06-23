@@ -129,11 +129,11 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         break;
       case TextInputType.phone:
         final digitsOnly = rawValue!.replaceAll(RegExp(r'\D'), '');
+        if (widget.canBeEmpty && digitsOnly.isEmpty) {
+          return null;
+        }
         if (digitsOnly.length != 10) {
           return widget.validationMessage ?? 'Invalid phone number';
-        }
-        if (widget.canBeEmpty) {
-          return null;
         }
         break;
       case TextInputType.emailAddress:
