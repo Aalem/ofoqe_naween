@@ -1,6 +1,7 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
@@ -377,66 +378,60 @@ class _MoneyExchangeState extends State<MoneyExchange> {
               children: [
                 Container(
                   color: AppColors.appBarBG,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: Strings.searchByDescription,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              prefixIcon: IconButton(
-                                icon: const Icon(Icons.search),
-                                onPressed: () {
-                                  _clearFilters(keepDescription: true);
-                                  _search();
-                                },
-                              ),
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  if (_searchController.text.isNotEmpty) {
-                                    _searchController.clear();
-                                    _search();
-                                  }
-                                },
-                              ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: Strings.searchByDescription,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
-                            onSubmitted: (value) {
-                              _clearFilters(keepDescription: true);
-                              _search();
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: IconButton(
-                            icon: const Icon(Icons.filter_list),
-                            onPressed: () {
-                              setState(() {
-                                if (ScreenSize.isPhone(context)) {
-                                  showDialog(
-                                      builder: (context) {
-                                        return _buildFilterDialog(context);
-                                      },
-                                      context: context);
-                                } else {
-                                  _showFilters = !_showFilters;
-                                  if (!_showFilters) {
-                                    _clearFilters();
-                                  }
+                            prefixIcon: IconButton(
+                              icon: const Icon(Icons.search),
+                              onPressed: () {
+                                _clearFilters(keepDescription: true);
+                                _search();
+                              },
+                            ),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                if (_searchController.text.isNotEmpty) {
+                                  _searchController.clear();
+                                  _search();
                                 }
-                              });
-                            },
+                              },
+                            ),
                           ),
+                          onSubmitted: (value) {
+                            _clearFilters(keepDescription: true);
+                            _search();
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                      ButtonIcon(
+                          icon: Icons.filter_list,
+                          onPressed: () {
+                            setState(() {
+                              if (ScreenSize.isPhone(context)) {
+                                showDialog(
+                                    builder: (context) {
+                                      return _buildFilterDialog(context);
+                                    },
+                                    context: context);
+                              } else {
+                                _showFilters = !_showFilters;
+                                if (!_showFilters) {
+                                  _clearFilters();
+                                }
+                              }
+                            });
+                          }),
+                    ],
                   ),
                 ),
                 // if (_showFilters) const SizedBox(height: 10),
@@ -627,7 +622,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                         lastDate: Jalali.now(),
                       );
                       if (pickedDate != null) {
-                        _specificDateController.text = pickedDate.formatCompactDate();
+                        _specificDateController.text =
+                            pickedDate.formatCompactDate();
                       }
                     },
                   ),
@@ -649,7 +645,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                       if (pickedDateRange != null) {
                         _selectedDateRange = pickedDateRange;
                         _dateRangeController.text =
-                        "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                            "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
                       }
                     },
                   ),
@@ -702,100 +698,4 @@ class _MoneyExchangeState extends State<MoneyExchange> {
       ),
     );
   }
-
-
-  // Widget _buildFilterDialog(BuildContext context) {
-  //   return Directionality(
-  //     textDirection: TextDirection.rtl,
-  //     child: AlertDialog(
-  //       title: const Text(Strings.filter),
-  //       content: SingleChildScrollView(
-  //         child: Column(
-  //           children: [
-  //             CustomTextFormField(
-  //               label: Strings.date,
-  //               controller: _specificDateController,
-  //               onTap: () async {
-  //                 FocusScope.of(context).requestFocus(FocusNode());
-  //                 var pickedDate = await showDariDatePicker(
-  //                   context: context,
-  //                   initialDate: Jalali.now(),
-  //                   firstDate: Jalali(1385, 8),
-  //                   lastDate: Jalali.now(),
-  //                 );
-  //                 if (pickedDate != null) {
-  //                   _specificDateController.text = pickedDate.formatCompactDate();
-  //                 }
-  //               },
-  //             ),
-  //             const SizedBox(height: 10),
-  //             CustomTextFormField(
-  //               label: Strings.dateRange,
-  //               controller: _dateRangeController,
-  //               onTap: () async {
-  //                 FocusScope.of(context).requestFocus(FocusNode());
-  //                 var pickedDateRange = await showDariDateRangePicker(
-  //                   context: context,
-  //                   initialDateRange: JalaliRange(
-  //                     start: Jalali.now().withDay(1),
-  //                     end: Jalali.now(),
-  //                   ),
-  //                   firstDate: Jalali(1385, 8),
-  //                   lastDate: Jalali.now(),
-  //                 );
-  //                 if (pickedDateRange != null) {
-  //                   _selectedDateRange = pickedDateRange;
-  //                   _dateRangeController.text =
-  //                       "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
-  //                 }
-  //               },
-  //             ),
-  //             const SizedBox(height: 10),
-  //             Row(
-  //               children: [
-  //                 Checkbox(
-  //                   value: _isDebitChecked,
-  //                   onChanged: (bool? value) {
-  //                     setState(() {
-  //                       _isDebitChecked = value!;
-  //                       print('$_isDebitChecked');
-  //                     });
-  //                   },
-  //                 ),
-  //                 const Text(Strings.debit),
-  //                 const SizedBox(width: 10),
-  //                 Checkbox(
-  //                   value: _isCreditChecked,
-  //                   onChanged: (bool? value) {
-  //                     setState(() {
-  //                       _isCreditChecked = value!;
-  //                     });
-  //                   },
-  //                 ),
-  //                 const Text(Strings.credit),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //       actions: [
-  //         DialogButton(
-  //           title: Strings.filter,
-  //           buttonType: ButtonType.positive,
-  //           onPressed: () {
-  //             _search();
-  //             Navigator.of(context).pop();
-  //           },
-  //         ),
-  //         ElevatedButton(
-  //           onPressed: () {
-  //             _clearFilters();
-  //             Navigator.of(context).pop();
-  //           },
-  //           child: const Text(Strings.clearFilter),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

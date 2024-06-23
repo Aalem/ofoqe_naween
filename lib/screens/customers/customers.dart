@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/screens/customers/add_customer.dart';
 import 'package:ofoqe_naween/services/customer_service.dart';
 import 'package:ofoqe_naween/models/customer_model.dart';
+import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class CustomersPage extends StatefulWidget {
@@ -38,7 +40,7 @@ class _CustomersPageState extends State<CustomersPage> {
       query = query
           .where('company', isGreaterThanOrEqualTo: _searchController.text)
           .where('company',
-          isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
+              isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
     } else {
       query = query.orderBy('date', descending: true);
     }
@@ -75,10 +77,26 @@ class _CustomersPageState extends State<CustomersPage> {
     });
   }
 
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(QuerySnapshot<Map<String, dynamic>> snapshot) {
+      String searchText = _searchController.text.toLowerCase();
+    return snapshot.docs.where((doc) {
+        String company = doc.data()['company']?.toString().toLowerCase() ?? '';
+        String name = doc.data()['name']?.toString().toLowerCase() ?? '';
+
+        return company.contains(searchText) || name.contains(searchText);
+      }).toList();
+  }
+
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
     int number = (_currentPage - 1) * _pageSize;
     if (snapshot.docs.isNotEmpty) {
-      lastRecordedDocumentId = snapshot.docs.last;
+      var filteredDocs = snapshot.docs;
+      if (_searchController.text.isNotEmpty) {
+        filteredDocs = getFilteredDocs(snapshot);
+      }
+
+      lastRecordedDocumentId = filteredDocs.last;
+
       return Column(
         children: [
           const SizedBox(height: 10),
@@ -97,32 +115,30 @@ class _CustomersPageState extends State<CustomersPage> {
                   .textTheme
                   .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: MaterialStateColor.resolveWith(
-                      (states) => Theme.of(context).highlightColor),
+              headingRowColor: WidgetStateColor.resolveWith(
+                  (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
                 DataColumn(label: Text(Strings.company)),
                 DataColumn(label: Text(Strings.name)),
                 DataColumn(label: Text(Strings.phoneNumbers)),
-                // DataColumn(label: Text(Strings.email)),
                 DataColumn(label: Text(Strings.address)),
                 DataColumn(label: Text(Strings.edit)),
                 DataColumn(label: Text(Strings.delete)),
               ],
-              rows: snapshot.docs.map((entry) {
+              rows: filteredDocs.map((entry) {
                 final customerEntry = Customer.fromMap(entry.data());
                 number++;
                 return DataRow(
                   cells: [
                     DataCell(ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 30),
+                        constraints: const BoxConstraints(maxWidth: 30),
                         child: Text(number.toString()))),
                     DataCell(Text(customerEntry.company)),
                     DataCell(Text(customerEntry.name)),
                     DataCell(Text(
                         textDirection: TextDirection.ltr,
                         '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
-                    // DataCell(Text(customerEntry.email)),
                     DataCell(Text(customerEntry.address)),
                     DataCell(
                       IconButton(
@@ -163,7 +179,7 @@ class _CustomersPageState extends State<CustomersPage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content:
-                                      Text('Failed to delete customer'),
+                                          Text('Failed to delete customer'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -216,112 +232,119 @@ class _CustomersPageState extends State<CustomersPage> {
       appBar: AppBar(
         title: const Row(
           children: [
-            Expanded(child: Text(Strings.customers, textAlign: TextAlign.right,)),
+            Expanded(
+                child: Text(
+              Strings.customers,
+              textAlign: TextAlign.right,
+            )),
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _customerStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _customerStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 600
-                        ? MediaQuery.of(context).size.width / 2
-                        : MediaQuery.of(context).size.width,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: Strings.searchByName,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        prefixIcon: IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Column(
+              children: [
+                Container(
+                  color: AppColors.appBarBG,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: Strings.search,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      prefixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          // _search();
+                          setState(() {
+
+                          });
+                        },
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          if (_searchController.text.isNotEmpty) {
+                            _searchController.clear();
                             _search();
-                          },
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            if (_searchController.text.isNotEmpty) {
-                              _searchController.clear();
-                              _search();
-                            }
-                          },
-                        ),
+                          }
+                        },
                       ),
-                      onSubmitted: (value) {
-                        _search();
-                      },
                     ),
+                    onSubmitted: (value) {
+                      // _search();
+                      setState(() {
+
+                      });
+                    },
                   ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Scrollbar(
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Scrollbar(
+                      controller: _verticalController,
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
                         controller: _verticalController,
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          controller: _verticalController,
-                          scrollDirection: Axis.vertical,
-                          child: Scrollbar(
+                        scrollDirection: Axis.vertical,
+                        child: Scrollbar(
+                          controller: _horizontalController,
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
                             controller: _horizontalController,
-                            thumbVisibility: true,
-                            child: SingleChildScrollView(
-                              controller: _horizontalController,
-                              scrollDirection: Axis.horizontal,
-                              child: _buildDataTable(snapshot.data!),
-                            ),
+                            scrollDirection: Axis.horizontal,
+                            child: _buildDataTable(snapshot.data!),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Visibility(
-                          visible: _currentPage > 1,
-                          child: TextButton(
-                            onPressed: _handlePreviousPage,
-                            child: const Text(Strings.previous),
-                          ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Visibility(
+                        visible: _currentPage > 1,
+                        child: TextButton(
+                          onPressed: _handlePreviousPage,
+                          child: const Text(Strings.previous),
                         ),
-                        const SizedBox(width: 10.0),
-                        Text('${Strings.page} $_currentPage'),
-                        const SizedBox(width: 10.0),
-                        Visibility(
-                          visible: snapshot.data!.docs.length == _pageSize,
-                          child: TextButton(
-                            onPressed: _handleNextPage,
-                            child: const Text(Strings.next),
-                          ),
+                      ),
+                      const SizedBox(width: 10.0),
+                      Text('${Strings.page} $_currentPage'),
+                      const SizedBox(width: 10.0),
+                      Visibility(
+                        visible: snapshot.data!.docs.length == _pageSize,
+                        child: TextButton(
+                          onPressed: _handleNextPage,
+                          child: const Text(Strings.next),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
