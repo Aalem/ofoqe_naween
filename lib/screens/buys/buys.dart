@@ -58,7 +58,8 @@ class _BuysState extends State<Buys> {
   Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions({
     bool isSearching = false,
   }) {
-    Query<Map<String, dynamic>> query = _firestore.collection(CollectionNames.moneyExchange);
+    Query<Map<String, dynamic>> query =
+        _firestore.collection(CollectionNames.moneyExchange);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
@@ -66,7 +67,8 @@ class _BuysState extends State<Buys> {
           DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
 
-      query = query.where(MoneyExchangeFields.gregorianDate, isEqualTo: specificDate);
+      query = query.where(MoneyExchangeFields.gregorianDate,
+          isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
           .where(MoneyExchangeFields.gregorianDate,
@@ -151,13 +153,16 @@ class _BuysState extends State<Buys> {
       }
       if (_searchController.text.isNotEmpty) {
         filteredDocs = snapshot.docs.where((doc) {
-          return doc.data()[MoneyExchangeFields.description].contains(_searchController.text);
+          return doc
+              .data()[MoneyExchangeFields.description]
+              .contains(_searchController.text);
         }).toList();
       }
       if (_specificDateController.text.isEmpty &&
           _selectedDateRange == null &&
           !(_isDebitChecked || _isCreditChecked)) {
-        filteredDocs.sort((a, b) => b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
+        filteredDocs.sort((a, b) =>
+            b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
       }
 
       return Column(
@@ -349,7 +354,7 @@ class _BuysState extends State<Buys> {
                           ? Colors.green
                           : Colors.red), // Set text alignment to start
                 )),
-                 Text(Strings.buys),
+                const Text(Strings.buys),
               ],
             );
           },

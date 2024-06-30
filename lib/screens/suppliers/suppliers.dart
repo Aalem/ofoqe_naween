@@ -5,23 +5,27 @@ import 'package:ofoqe_naween/screens/customers/add_customer.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
 import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/screens/customers/models/customer_model.dart';
+import 'package:ofoqe_naween/screens/suppliers/add_supplier.dart';
+import 'package:ofoqe_naween/screens/suppliers/collection_fields/supplier_fields.dart';
+import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
+import 'package:ofoqe_naween/screens/suppliers/services/supplier_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class CustomersPage extends StatefulWidget {
-  const CustomersPage({super.key});
+class SuppliersPage extends StatefulWidget {
+  const SuppliersPage({super.key});
 
   @override
-  _CustomersPageState createState() => _CustomersPageState();
+  _SuppliersPageState createState() => _SuppliersPageState();
 }
 
-class _CustomersPageState extends State<CustomersPage> {
+class _SuppliersPageState extends State<SuppliersPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
   int _currentPage = 1;
-  Stream<QuerySnapshot<Map<String, dynamic>>>? _customerStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _supplierStream;
   late DocumentSnapshot lastRecordedDocumentId;
 
   final ScrollController _verticalController = ScrollController();
@@ -30,15 +34,15 @@ class _CustomersPageState extends State<CustomersPage> {
   @override
   void initState() {
     super.initState();
-    _customerStream = _getCustomers();
+    _supplierStream = _getSuppliers();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers(
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getSuppliers(
       {bool isSearching = false}) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.customers);
+        _firestore.collection(CollectionNames.suppliers);
 
-    query = query.orderBy(CustomerFields.date, descending: true);
+    query = query.orderBy(SupplierFields.name, descending: true);
 
     if (_currentPage > 1) {
       query = query.startAfterDocument(lastRecordedDocumentId);
@@ -52,7 +56,7 @@ class _CustomersPageState extends State<CustomersPage> {
   void _handleNextPage() {
     setState(() {
       _currentPage++;
-      _customerStream = _getCustomers();
+      _supplierStream = _getSuppliers();
     });
   }
 
@@ -60,7 +64,7 @@ class _CustomersPageState extends State<CustomersPage> {
     if (_currentPage > 1) {
       setState(() {
         _currentPage--;
-        _customerStream = _getCustomers();
+        _supplierStream = _getSuppliers();
       });
     }
   }
@@ -68,7 +72,7 @@ class _CustomersPageState extends State<CustomersPage> {
   void _search() {
     _currentPage = 1;
     setState(() {
-      _customerStream = _getCustomers(isSearching: false);
+      _supplierStream = _getSuppliers(isSearching: false);
     });
   }
 
@@ -76,10 +80,10 @@ class _CustomersPageState extends State<CustomersPage> {
       QuerySnapshot<Map<String, dynamic>> snapshot) {
     String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
-      String company = doc.data()[CustomerFields.company]?.toString().toLowerCase() ?? '';
+      String products = doc.data()[SupplierFields.products]?.toString().toLowerCase() ?? '';
       String name = doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
 
-      return company.contains(searchText) || name.contains(searchText);
+      return products.contains(searchText) || name.contains(searchText);
     }).toList();
   }
 
@@ -115,27 +119,31 @@ class _CustomersPageState extends State<CustomersPage> {
                   (states) => Theme.of(context).highlightColor),
               columns: const [
                 DataColumn(label: Text(Strings.number)),
-                DataColumn(label: Text(Strings.company)),
-                DataColumn(label: Text(Strings.name)),
+                DataColumn(label: Text(Strings.supplier)),
+                DataColumn(label: Text(Strings.products)),
                 DataColumn(label: Text(Strings.phoneNumbers)),
                 DataColumn(label: Text(Strings.address)),
+                DataColumn(label: Text(Strings.email)),
+                DataColumn(label: Text(Strings.website)),
                 DataColumn(label: Text(Strings.edit)),
                 DataColumn(label: Text(Strings.delete)),
               ],
               rows: filteredDocs.map((entry) {
-                final customerEntry = Customer.fromMap(entry.data());
+                final supplierEntry = Supplier.fromMap(entry.data());
                 number++;
                 return DataRow(
                   cells: [
                     DataCell(ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 30),
                         child: Text(number.toString()))),
-                    DataCell(Text(customerEntry.company)),
-                    DataCell(Text(customerEntry.name)),
+                    DataCell(Text(supplierEntry.name)),
+                    DataCell(Text(supplierEntry.products)),
                     DataCell(Text(
                         textDirection: TextDirection.ltr,
-                        '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
-                    DataCell(Text(customerEntry.address)),
+                        '${supplierEntry.phone1} ${supplierEntry.phone2.isNotEmpty ? '\n${supplierEntry.phone2}' : ''}')),
+                    DataCell(Text(supplierEntry.address)),
+                    DataCell(Text(supplierEntry.email)),
+                    DataCell(Text(supplierEntry.website)),
                     DataCell(
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
@@ -147,8 +155,8 @@ class _CustomersPageState extends State<CustomersPage> {
                                 textDirection: TextDirection.rtl,
                                 child: AlertDialog(
                                   title: const Text(Strings.addCustomerTitle),
-                                  content: NewCustomerPage(
-                                      customer: customerEntry, id: entry.id),
+                                  content: AddSupplierPage(
+                                      supplier: supplierEntry, id: entry.id),
                                 ),
                               );
                             },
@@ -164,18 +172,18 @@ class _CustomersPageState extends State<CustomersPage> {
                           builder: (BuildContext context) {
                             return ConfirmationDialog(
                               title: Strings.dialogDeleteTitle +
-                                  customerEntry.name,
-                              message: Strings.customerDeleteMessage,
+                                  supplierEntry.name,
+                              message: Strings.supplierDeleteMessage,
                               onConfirm: () async {
                                 try {
-                                  await CustomerService.deleteCustomer(
+                                  await SupplierService.deleteSupplier(
                                       entry.id);
                                   Navigator.of(context).pop();
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content:
-                                          Text('Failed to delete customer'),
+                                          Text(Strings.failedToDeleteSupplier),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -216,8 +224,8 @@ class _CustomersPageState extends State<CustomersPage> {
               return const Directionality(
                 textDirection: TextDirection.rtl,
                 child: AlertDialog(
-                  title: Text(Strings.addCustomerTitle),
-                  content: NewCustomerPage(),
+                  title: Text(Strings.addSupplierTitle),
+                  content: AddSupplierPage( ),
                 ),
               );
             },
@@ -230,14 +238,14 @@ class _CustomersPageState extends State<CustomersPage> {
           children: [
             Expanded(
                 child: Text(
-              Strings.customers,
+              Strings.suppliers,
               textAlign: TextAlign.right,
             )),
           ],
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _customerStream,
+        stream: _supplierStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));

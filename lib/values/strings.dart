@@ -7,6 +7,7 @@ class Strings{
   static const String moneyExchange = 'صرافی';
   static const String logout = 'خروج';
   static const String buys = 'خریدات';
+  static const String suppliers = 'شرکت های تولیدی';
 
   // general
   static const String edit = 'ویرایش';
@@ -85,7 +86,7 @@ class Strings{
   static const String enterCredit = 'مبلغ برداشت را وارد کنید!';
   static const String transactionAddedSuccessfully = 'تراکنش موفقانه ثبت گردید';
   static const String transactionUpdatedSuccessfully = 'تراکنش موفقانه ویرایش گردید';
-  static const String errorUpdatingTransaction = 'خطا در ثبت آپدیت اطلاعات صرافی!';
+  static const String errorUpdatingTransaction = 'خطا در آپدیت اطلاعات صرافی!';
   static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
   static const String addTransaction = 'اضافه نمودن تراکنش';
   static const String editTransaction = 'ویرایش تراکنش';
@@ -99,4 +100,18 @@ class Strings{
   static const String dateRange = 'محدوده تاریخ';
   static const String date = 'تاریخ';
   static const String filter = 'فیلتر';
+
+  // Suppliers
+  static const String supplier = 'شرکت تولیدی';
+  static const String products = 'تولیدات';
+  static const String website = 'وبسایت';
+  static const String addSupplierTitle = 'اضافه نمودن شرکت تولیدی';
+  static const String enterSupplier = 'لطفاً نام شرکت را وارد کنید.';
+  static const String enterCorrectWebsite = 'لطفاً وبسایت را درست وارد کنید.';
+  static const String supplierAddedSuccessfully = 'شرکت تولیدی موفقانه ثبت گردید';
+  static const String supplierUpdatedSuccessfully = 'شرکت تولیدی موفقانه ویرایش گردید';
+  static const String errorUpdatingSupplier = 'خطا در آپدیت شرکت تولیدی!';
+  static const String errorAddingSupplier = 'خطا در ثبت شرکت تولیدی!';
+  static const String supplierDeleteMessage = 'آیا مطمئن هستید میخواهیید این شرکت تولیدی را حذف کنید؟';
+  static const String failedToDeleteSupplier = 'خطا در حذف شرکت تولیدی';
 }

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
-import 'package:ofoqe_naween/screens/customers/customers.dart';
-import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
-import 'package:ofoqe_naween/screens/page_under_construction.dart';
+import 'package:ofoqe_naween/screens/suppliers/suppliers.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/main_pages.dart';
 import 'package:ofoqe_naween/values/strings.dart';
@@ -47,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NavigationProvider.instance.contentToDisplay = MoneyExchange();
+    NavigationProvider.instance.contentToDisplay = SuppliersPage();
   }
 
   @override

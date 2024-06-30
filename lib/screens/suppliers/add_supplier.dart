@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
-import 'package:ofoqe_naween/screens/customers/models/customer_model.dart';
-import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
+import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
+import 'package:ofoqe_naween/screens/suppliers/services/supplier_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class NewCustomerPage extends StatefulWidget {
-  final Customer? customer; // Customer data for editing
+class AddSupplierPage extends StatefulWidget {
+  final Supplier? supplier; // Customer data for editing
   final String? id;
 
-  const NewCustomerPage({super.key, this.customer, this.id});
+  const AddSupplierPage({super.key, this.supplier, this.id});
 
   @override
-  _NewCustomerPageState createState() => _NewCustomerPageState();
+  _AddSupplierPageState createState() => _AddSupplierPageState();
 }
 
-class _NewCustomerPageState extends State<NewCustomerPage> {
+class _AddSupplierPageState extends State<AddSupplierPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  late Customer _customer;
+  late Supplier _supplier;
 
   @override
   void initState() {
     super.initState();
-    if (widget.customer != null) {
-      _customer = widget.customer!;
+    if (widget.supplier != null) {
+      _supplier = widget.supplier!;
     } else {
-      _customer = Customer(
+      _supplier = Supplier(
         name: '',
         address: '',
-        company: '',
+        products: '',
         email: '',
-        date: '',
+        website: '',
         phone1: '',
         phone2: '',
       );
@@ -66,57 +66,65 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...getResponsiveRow([
-                CustomTextFormField(
-                  enabled: !_isLoading,
-                  label: Strings.company,
-                  controller: TextEditingController(text: _customer.company),
-                  validationMessage: Strings.enterCompany,
-                  onSaved: (value) => _customer.company = value!,
-                ),
-                CustomTextFormField(
-                  enabled: !_isLoading,
-                  controller: TextEditingController(text: _customer.name),
-                  label: Strings.name,
-                  validationMessage: Strings.enterName,
-                  onSaved: (value) => _customer.name = value!,
-                ),
-              ]),
               CustomTextFormField(
                 enabled: !_isLoading,
-                controller: TextEditingController(text: _customer.address),
-                label: Strings.address,
-                validationMessage: Strings.enterAddress,
-                onSaved: (value) => _customer.address = value!,
+                label: Strings.supplier,
+                controller: TextEditingController(text: _supplier.name,),
+                validationMessage: Strings.enterSupplier,
+                onSaved: (value) => _supplier.name = value!,
+              ),
+              CustomTextFormField(
+                enabled: !_isLoading,
+                controller: TextEditingController(text: _supplier.products),
+                label: Strings.products,
+                onSaved: (value) => _supplier.products = value!,
               ),
               ...getResponsiveRow([
                 CustomTextFormField(
                   enabled: !_isLoading,
-                  controller: TextEditingController(text: _customer.phone1),
+                  controller: TextEditingController(text: _supplier.phone1),
                   validationMessage: Strings.enterCorrectNumber,
                   label: Strings.phone1,
                   canBeEmpty: true,
                   keyboardType: TextInputType.phone,
-                  onSaved: (value) => _customer.phone1 = value!,
+                  onSaved: (value) => _supplier.phone1 = value!,
                 ),
                 CustomTextFormField(
                   enabled: !_isLoading,
-                  controller: TextEditingController(text: _customer.phone2),
+                  controller: TextEditingController(text: _supplier.phone2),
                   label: Strings.phone2,
                   canBeEmpty: true,
                   keyboardType: TextInputType.phone,
                   validationMessage: Strings.enterCorrectNumber,
-                  onSaved: (value) => _customer.phone2 = value!,
+                  onSaved: (value) => _supplier.phone2 = value!,
                 ),
               ]),
               CustomTextFormField(
                 enabled: !_isLoading,
-                controller: TextEditingController(text: _customer.email),
-                label: Strings.email,
-                keyboardType: TextInputType.emailAddress,
-                validationMessage: Strings.enterValidEmail,
-                onSaved: (value) => _customer.email = value!,
+                controller: TextEditingController(text: _supplier.address),
+                label: Strings.address,
+                validationMessage: Strings.enterAddress,
+                onSaved: (value) => _supplier.address = value!,
               ),
+              ...getResponsiveRow([
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  controller: TextEditingController(text: _supplier.email),
+                  label: Strings.email,
+                  keyboardType: TextInputType.emailAddress,
+                  validationMessage: Strings.enterValidEmail,
+                  onSaved: (value) => _supplier.email = value!,
+                ),
+                CustomTextFormField(
+                  enabled: !_isLoading,
+                  controller: TextEditingController(text: _supplier.website),
+                  label: Strings.website,
+                  keyboardType: TextInputType.url,
+                  validationMessage: Strings.enterValidEmail,
+                  onSaved: (value) => _supplier.website = value!,
+                ),
+              ]),
+
 
               const SizedBox(height: 20.0),
               Row(
@@ -130,7 +138,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                           : () async {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
-                                await _saveCustomerToFirestore();
+                                await _saveSupplierToFirestore();
                               }
                             },
                     ),
@@ -180,22 +188,22 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
     );
   }
 
-  Future<void> _saveCustomerToFirestore() async {
+  Future<void> _saveSupplierToFirestore() async {
     try {
       setState(() {
         _isLoading = true;
       });
-      final customerData = _customer.toMap();
+      final supplierData = _supplier.toMap();
       if (widget.id != null) {
-        await CustomerService.updateCustomer(widget.id!, customerData);
+        await SupplierService.updateSupplier(widget.id!, supplierData);
         NotificationService().showSuccess(
           context,
-          Strings.customerUpdatedSuccessfully,
+          Strings.supplierUpdatedSuccessfully,
         );
       } else {
-        await CustomerService.addCustomer(customerData);
+        await SupplierService.addSupplier(supplierData);
         NotificationService()
-            .showSuccess(context, Strings.customerAddedSuccessfully);
+            .showSuccess(context, Strings.supplierAddedSuccessfully);
       }
       Navigator.pop(context);
     } on Exception catch (e) {
@@ -205,8 +213,8 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
       NotificationService().showError(
         context,
         widget.id != null
-            ? Strings.errorUpdatingCustomer
-            : Strings.errorAddingCustomer,
+            ? Strings.errorUpdatingSupplier
+            : Strings.errorAddingSupplier,
       );
     } catch (e) {
       print(e.toString());
