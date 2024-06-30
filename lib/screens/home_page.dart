@@ -4,6 +4,7 @@ import 'package:ofoqe_naween/screens/customers/customers.dart';
 import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
 import 'package:ofoqe_naween/screens/page_under_construction.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
+import 'package:ofoqe_naween/values/main_pages.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 
@@ -112,43 +113,15 @@ class _HomePageState extends State<HomePage> {
                 textAlign: TextAlign.center,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.inventory),
-              title: const Text(Strings.inventory),
-              onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(UnderConstructionPage()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text(Strings.customers),
-              onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(CustomersPage()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.book),
-              title: const Text(Strings.ledger),
-              onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(UnderConstructionPage()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt),
-              title: const Text(Strings.journal),
-              onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(UnderConstructionPage()),
-            ),
-            ListTile(
-              leading: const Icon(Icons.money),
-              title: const Text(Strings.moneyExchange),
-              onTap: () =>
-                  Provider.of<NavigationProvider>(context, listen: false)
-                      .updatePage(MoneyExchange()),
-              // Provider.of<NavigationProvider>(context, listen: false)
-              //     .updatePage(UnderConstructionPage()),
-            ),
+            ...mainPages.keys.map((String key) {
+              return ListTile(
+                leading: Icon(mainPages[key]!['icon'] as IconData),
+                title: Text(mainPages[key]!['title'] as String),
+                onTap: () {
+                  Provider.of<NavigationProvider>(context, listen: false).updatePage(mainPages[key]!['widget'] as Widget);
+                },
+              );
+            }),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text(Strings.logout),

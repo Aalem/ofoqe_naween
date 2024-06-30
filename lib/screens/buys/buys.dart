@@ -17,12 +17,12 @@ import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class MoneyExchange extends StatefulWidget {
+class Buys extends StatefulWidget {
   @override
-  _MoneyExchangeState createState() => _MoneyExchangeState();
+  _BuysState createState() => _BuysState();
 }
 
-class _MoneyExchangeState extends State<MoneyExchange> {
+class _BuysState extends State<Buys> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
@@ -59,14 +59,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query = _firestore.collection(CollectionNames.moneyExchange);
-
-    // Apply search filter if needed
-    // if (_searchController.text.isNotEmpty) {
-    //   query = query
-    //       .where(MoneyExchangeFields.description, isGreaterThanOrEqualTo: _searchController.text)
-    //       .where(MoneyExchangeFields.description,
-    //           isLessThanOrEqualTo: '${_searchController.text}\uf8ff');
-    // }
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
@@ -357,7 +349,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           ? Colors.green
                           : Colors.red), // Set text alignment to start
                 )),
-                const Text(Strings.moneyExchange, textAlign: TextAlign.right),
+                 Text(Strings.buys),
               ],
             );
           },

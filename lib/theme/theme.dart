@@ -11,13 +11,16 @@ class AppTheme {
     // You can use the context here if needed
     return ThemeData(
       appBarTheme: Theme.of(context).appBarTheme.copyWith(
-          elevation: 0,
-          backgroundColor: AppColors.appBarBG,
-          titleTextStyle: const TextStyle(color: Colors.black87, fontSize: 20)
-      ),
+            elevation: 0,
+            backgroundColor: AppColors.appBarBG,
+            titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
       drawerTheme: Theme.of(context).drawerTheme.copyWith(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-      ),
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+          ),
       // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       // useMaterial3: false,
 
@@ -41,7 +44,8 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: textFieldBorderRadius,
           borderSide: BorderSide(
-            color: AppColors.textFocusedBorderColor, // Border color when focused
+            color: AppColors.textFocusedBorderColor,
+            // Border color when focused
             width: 1.0, // Border width when focused
           ),
         ),
@@ -62,7 +66,7 @@ class AppTheme {
   //   // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
   //   // useMaterial3: false,
   // );
-   ThemeData darkTheme = ThemeData(
+  ThemeData darkTheme = ThemeData(
     // Define dark theme properties here
     primaryColor: Colors.indigo,
     // Other theme properties...

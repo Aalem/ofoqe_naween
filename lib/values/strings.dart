@@ -6,6 +6,7 @@ class Strings{
   static const String journal = 'روزنامچه';
   static const String moneyExchange = 'صرافی';
   static const String logout = 'خروج';
+  static const String buys = 'خریدات';
 
   // general
   static const String edit = 'ویرایش';

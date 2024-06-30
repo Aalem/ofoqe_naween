@@ -2,9 +2,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/firebase_options.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
+import 'package:ofoqe_naween/screens/buys/buys.dart';
 import 'package:ofoqe_naween/screens/home_page.dart';
 import 'package:ofoqe_naween/screens/ledger/add_to_ledger.dart';
 import 'package:ofoqe_naween/screens/login_page.dart';
+import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +43,8 @@ class MyApp extends StatelessWidget {
             '/home': (context) => HomePage(),
             '/login': (context) => LoginPage(),
             '/ledger': (context) => AddLedgerEntry(),
+            '/buys': (context) => Buys(),
+            '/money_exchange': (context) => MoneyExchange(),
           },
         ),
       ),
