@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/screens/customers/add_customer.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
-import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
-import 'package:ofoqe_naween/screens/customers/models/customer_model.dart';
 import 'package:ofoqe_naween/screens/suppliers/add_supplier.dart';
 import 'package:ofoqe_naween/screens/suppliers/collection_fields/supplier_fields.dart';
 import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
@@ -80,8 +77,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
       QuerySnapshot<Map<String, dynamic>> snapshot) {
     String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
-      String products = doc.data()[SupplierFields.products]?.toString().toLowerCase() ?? '';
-      String name = doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
+      String products =
+          doc.data()[SupplierFields.products]?.toString().toLowerCase() ?? '';
+      String name =
+          doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
 
       return products.contains(searchText) || name.contains(searchText);
     }).toList();
@@ -171,7 +170,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                           context: context,
                           builder: (BuildContext context) {
                             return ConfirmationDialog(
-                              title: Strings.dialogDeleteTitle +
+                              title: Strings.supplierDeleteTitle +
                                   supplierEntry.name,
                               message: Strings.supplierDeleteMessage,
                               onConfirm: () async {
@@ -225,7 +224,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 textDirection: TextDirection.rtl,
                 child: AlertDialog(
                   title: Text(Strings.addSupplierTitle),
-                  content: AddSupplierPage( ),
+                  content: AddSupplierPage(),
                 ),
               );
             },

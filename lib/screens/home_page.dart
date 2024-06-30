@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
 import 'package:ofoqe_naween/screens/suppliers/suppliers.dart';
+import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/main_pages.dart';
 import 'package:ofoqe_naween/values/strings.dart';
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String selectedKey = 'suppliers';
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // Key for drawer
 
@@ -52,9 +54,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: ScreenSize.isPhone(context)
-          ? _buildAppBar(context)
-          : null,
+      appBar: ScreenSize.isPhone(context) ? _buildAppBar(context) : null,
       endDrawer: _buildDrawer(context),
       body: Row(
         children: [
@@ -72,7 +72,12 @@ class _HomePageState extends State<HomePage> {
     return AppBar(
       title: const Row(
         children: [
-          Expanded(child: Text(Strings.appName, textAlign: TextAlign.center,style: TextStyle(fontWeight: FontWeight.bold),)),
+          Expanded(
+              child: Text(
+            Strings.appName,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          )),
         ],
       ),
       actions: [
@@ -112,17 +117,31 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ...mainPages.keys.map((String key) {
-              return ListTile(
-                leading: Icon(mainPages[key]!['icon'] as IconData),
-                title: Text(mainPages[key]!['title'] as String),
-                onTap: () {
-                  Provider.of<NavigationProvider>(context, listen: false).updatePage(mainPages[key]!['widget'] as Widget);
+              return Consumer<NavigationProvider>(
+                builder: (context, navigationProvider, child) {
+                  bool isSelected = NavigationProvider.selectedKey == key;
+                  return ListTile(
+                    leading: Icon(mainPages[key]!['icon'] as IconData,
+                        color: isSelected ? AppColors.primaryColor : null),
+                    title: Text(
+                      mainPages[key]!['title'] as String,
+                      style: isSelected
+                          ? TextStyle(color: AppColors.primaryColor)
+                          : null,
+                    ),
+                    tileColor: isSelected ? Colors.grey[300] : null,
+                    onTap: () {
+                      NavigationProvider.selectedKey = key;
+                      Provider.of<NavigationProvider>(context, listen: false)
+                          .updatePage(mainPages[key]!['widget'] as Widget);
+                    },
+                  );
                 },
               );
             }),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text(Strings.logout),
+            const ListTile(
+              leading: Icon(Icons.logout),
+              title: Text(Strings.logout),
               // onTap: () => _showLogoutConfirmation(),
             ),
           ],

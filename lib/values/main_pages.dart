@@ -9,7 +9,7 @@ import 'strings.dart';
 var mainPages = {
   'customers' : {'title': Strings.customers, 'icon': Icons.people, 'widget': const CustomersPage()},
   'suppliers' : {'title': Strings.suppliers, 'icon': Icons.people, 'widget': const SuppliersPage()},
-  'buys' : {'title': Strings.buys, 'icon': Icons.kitchen, 'widget': Buys()},
+  'buys' : {'title': Strings.buys, 'icon': Icons.kitchen, 'widget': UnderConstructionPage()},
   'inventory' : {'title': Strings.inventory, 'icon': Icons.inventory, 'widget': UnderConstructionPage()},
   'money_exchange' : {'title': Strings.moneyExchange, 'icon': Icons.money, 'widget': MoneyExchange()},
 };

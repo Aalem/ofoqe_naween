@@ -163,7 +163,7 @@ class _CustomersPageState extends State<CustomersPage> {
                           context: context,
                           builder: (BuildContext context) {
                             return ConfirmationDialog(
-                              title: Strings.dialogDeleteTitle +
+                              title: Strings.customerDeleteTitle +
                                   customerEntry.name,
                               message: Strings.customerDeleteMessage,
                               onConfirm: () async {

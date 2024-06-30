@@ -10,6 +10,7 @@ class NavigationProvider with ChangeNotifier{
   NavigationProvider._internal();
 
   static NavigationProvider get instance => _instance;
+  static String selectedKey = 'suppliers';
 
   Widget contentToDisplay = Container();
 

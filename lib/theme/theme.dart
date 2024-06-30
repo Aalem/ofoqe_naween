@@ -10,6 +10,7 @@ class AppTheme {
   ThemeData getTheme() {
     // You can use the context here if needed
     return ThemeData(
+      primaryColor: AppColors.primaryColor,
       appBarTheme: Theme.of(context).appBarTheme.copyWith(
             elevation: 0,
             backgroundColor: AppColors.appBarBG,

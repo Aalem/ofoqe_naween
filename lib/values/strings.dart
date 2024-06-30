@@ -73,7 +73,7 @@ class Strings{
   static const String clearFilter = 'برداشتن فیلتر';
   static const String customerNotFound = 'مشتری موجود نیست!';
   static const String customerDeleteMessage = 'آیا مطمئن هستید میخواهیید مشتری را حذف کنید؟';
-  static const String dialogDeleteTitle = 'حذف مشتری: ';
+  static const String customerDeleteTitle = 'حذف مشتری: ';
   static const String customerUpdatedSuccessfully = 'مشتری موفقانه آپدیت شد';
   static const String errorUpdatingCustomer = 'خطا در آپدیت مشتری';
 
@@ -114,4 +114,6 @@ class Strings{
   static const String errorAddingSupplier = 'خطا در ثبت شرکت تولیدی!';
   static const String supplierDeleteMessage = 'آیا مطمئن هستید میخواهیید این شرکت تولیدی را حذف کنید؟';
   static const String failedToDeleteSupplier = 'خطا در حذف شرکت تولیدی';
+  static const String supplierDeleteTitle = 'حذف مشتری: ';
+
 }
