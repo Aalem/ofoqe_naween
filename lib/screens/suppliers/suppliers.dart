@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
+import 'package:ofoqe_naween/components/no_data.dart';
+import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
 import 'package:ofoqe_naween/screens/suppliers/add_supplier.dart';
 import 'package:ofoqe_naween/screens/suppliers/collection_fields/supplier_fields.dart';
@@ -77,10 +79,8 @@ class _SuppliersPageState extends State<SuppliersPage> {
       QuerySnapshot<Map<String, dynamic>> snapshot) {
     String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
-      String products =
-          doc.data()[SupplierFields.products]?.toString().toLowerCase() ?? '';
-      String name =
-          doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
+      String products = doc.data()[SupplierFields.products] ?? '';
+      String name = doc.data()[CustomerFields.name].toString();
 
       return products.contains(searchText) || name.contains(searchText);
     }).toList();
@@ -94,121 +94,117 @@ class _SuppliersPageState extends State<SuppliersPage> {
         filteredDocs = getFilteredDocs(snapshot);
       }
 
-      lastRecordedDocumentId = filteredDocs.last;
-
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(5.0),
-            ),
-            child: DataTable(
-              border: TableBorder.all(
-                width: 0.1, // Adjust width as needed
-                color: Colors.grey, // Change color to your preference
-                style: BorderStyle.solid,
+      if (filteredDocs.isNotEmpty) {
+        lastRecordedDocumentId = filteredDocs.last;
+        return Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(5.0),
               ),
-              headingTextStyle: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: WidgetStateColor.resolveWith(
-                  (states) => Theme.of(context).highlightColor),
-              columns: const [
-                DataColumn(label: Text(Strings.number)),
-                DataColumn(label: Text(Strings.supplier)),
-                DataColumn(label: Text(Strings.products)),
-                DataColumn(label: Text(Strings.phoneNumbers)),
-                DataColumn(label: Text(Strings.address)),
-                DataColumn(label: Text(Strings.email)),
-                DataColumn(label: Text(Strings.website)),
-                DataColumn(label: Text(Strings.edit)),
-                DataColumn(label: Text(Strings.delete)),
-              ],
-              rows: filteredDocs.map((entry) {
-                final supplierEntry = Supplier.fromMap(entry.data());
-                number++;
-                return DataRow(
-                  cells: [
-                    DataCell(ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 30),
-                        child: Text(number.toString()))),
-                    DataCell(Text(supplierEntry.name)),
-                    DataCell(Text(supplierEntry.products)),
-                    DataCell(Text(
-                        textDirection: TextDirection.ltr,
-                        '${supplierEntry.phone1} ${supplierEntry.phone2.isNotEmpty ? '\n${supplierEntry.phone2}' : ''}')),
-                    DataCell(Text(supplierEntry.address)),
-                    DataCell(Text(supplierEntry.email)),
-                    DataCell(Text(supplierEntry.website)),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
+              child: DataTable(
+                border: TableBorder.all(
+                  width: 0.1, // Adjust width as needed
+                  color: Colors.grey, // Change color to your preference
+                  style: BorderStyle.solid,
+                ),
+                headingTextStyle: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+                headingRowColor: WidgetStateColor.resolveWith(
+                        (states) => Theme.of(context).highlightColor),
+                columns: const [
+                  DataColumn(label: Text(Strings.number)),
+                  DataColumn(label: Text(Strings.supplier)),
+                  DataColumn(label: Text(Strings.products)),
+                  DataColumn(label: Text(Strings.phoneNumbers)),
+                  DataColumn(label: Text(Strings.address)),
+                  DataColumn(label: Text(Strings.email)),
+                  DataColumn(label: Text(Strings.website)),
+                  DataColumn(label: Text(Strings.edit)),
+                  DataColumn(label: Text(Strings.delete)),
+                ],
+                rows: filteredDocs.map((entry) {
+                  final supplierEntry = Supplier.fromMap(entry.data());
+                  number++;
+                  return DataRow(
+                    cells: [
+                      DataCell(ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 30),
+                          child: Text(number.toString()))),
+                      DataCell(Text(supplierEntry.name)),
+                      DataCell(Text(supplierEntry.products)),
+                      DataCell(Text(
+                          textDirection: TextDirection.ltr,
+                          '${supplierEntry.phone1} ${supplierEntry.phone2.isNotEmpty ? '\n${supplierEntry.phone2}' : ''}')),
+                      DataCell(Text(supplierEntry.address)),
+                      DataCell(Text(supplierEntry.email)),
+                      DataCell(Text(supplierEntry.website)),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: AlertDialog(
+                                    title: const Text(Strings.addCustomerTitle),
+                                    content: AddSupplierPage(
+                                        supplier: supplierEntry, id: entry.id),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      DataCell(IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: AlertDialog(
-                                  title: const Text(Strings.addCustomerTitle),
-                                  content: AddSupplierPage(
-                                      supplier: supplierEntry, id: entry.id),
-                                ),
+                              return ConfirmationDialog(
+                                title: Strings.supplierDeleteTitle +
+                                    supplierEntry.name,
+                                message: Strings.supplierDeleteMessage,
+                                onConfirm: () async {
+                                  try {
+                                    await SupplierService.deleteSupplier(
+                                        entry.id);
+                                    Navigator.of(context).pop();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                        Text(Strings.failedToDeleteSupplier),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
                               );
                             },
                           );
                         },
-                      ),
-                    ),
-                    DataCell(IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return ConfirmationDialog(
-                              title: Strings.supplierDeleteTitle +
-                                  supplierEntry.name,
-                              message: Strings.supplierDeleteMessage,
-                              onConfirm: () async {
-                                try {
-                                  await SupplierService.deleteSupplier(
-                                      entry.id);
-                                  Navigator.of(context).pop();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text(Strings.failedToDeleteSupplier),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        );
-                      },
-                    )),
-                  ],
-                );
-              }).toList(),
+                      )),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        ],
-      );
+          ],
+        );
+      }else{
+        return NothingFound();
+      }
     } else {
-      return const Text(
-        Strings.customerNotFound,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.red,
-        ),
-      );
+      return NoDataExists();
     }
   }
 

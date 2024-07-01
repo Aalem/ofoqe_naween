@@ -12,6 +12,10 @@ class Strings{
   // general
   static const String edit = 'ویرایش';
   static const String delete = 'حذف';
+  static const String nothingFound = 'اطلاعاتی پیدا نشد';
+  static const String noDataStored = 'تا به حال اطلاعاتی ثبت نشده است';
+  static const String nothingFoundGuide = 'لطفاً واژه های جستجو را عوض نموده، دوباره امتحان کنید!';
+  static const String addNewData = 'برای ثبت اطلاعات میتوانید روی دکمه زیر کلیک کنید!';
 
   // Ledger DataTable Titles
   static const String jalaliDate = 'تاریخ شمسی';
@@ -92,6 +96,7 @@ class Strings{
   static const String editTransaction = 'ویرایش تراکنش';
   static const String deleteTransaction = 'حذف تراکنش: ';
   static const String deleteTransactionMessage = 'آیا مطمئن هستید میخواهیید این تراکنش را حذف کنید؟';
+  static const String failedToDeletingTransaction = 'خطا در حذف تراکنش';
   static const String transactionNotFound = 'تراکنشی موجود نیست';
   static const String transactions = 'تراکنش ها';
   static const String searchByDescription = 'جستجو به اساس توضیحات';

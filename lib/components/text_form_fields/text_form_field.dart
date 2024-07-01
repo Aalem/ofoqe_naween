@@ -143,6 +143,15 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           return widget.validationMessage ?? 'Invalid email address';
         }
         break;
+      case TextInputType.url:
+        if (rawValue != null &&
+            rawValue.isNotEmpty &&
+            !RegExp(r'^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?$').hasMatch(rawValue)) {
+            return widget.validationMessage ?? 'Invalid website URL';
+        } else {
+          return null;
+        }
+        break;
       default:
         if (rawValue == null || rawValue.isEmpty) {
           return widget.validationMessage ?? 'This field cannot be empty';

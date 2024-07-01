@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
+import 'package:ofoqe_naween/components/no_data.dart';
+import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/screens/customers/add_customer.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
 import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
@@ -76,8 +78,10 @@ class _CustomersPageState extends State<CustomersPage> {
       QuerySnapshot<Map<String, dynamic>> snapshot) {
     String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
-      String company = doc.data()[CustomerFields.company]?.toString().toLowerCase() ?? '';
-      String name = doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
+      String company =
+          doc.data()[CustomerFields.company]?.toString().toLowerCase() ?? '';
+      String name =
+          doc.data()[CustomerFields.name]?.toString().toLowerCase() ?? '';
 
       return company.contains(searchText) || name.contains(searchText);
     }).toList();
@@ -91,117 +95,113 @@ class _CustomersPageState extends State<CustomersPage> {
         filteredDocs = getFilteredDocs(snapshot);
       }
 
-      lastRecordedDocumentId = filteredDocs.last;
-
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(5.0),
-            ),
-            child: DataTable(
-              border: TableBorder.all(
-                width: 0.1, // Adjust width as needed
-                color: Colors.grey, // Change color to your preference
-                style: BorderStyle.solid,
+      if (filteredDocs.isNotEmpty) {
+        lastRecordedDocumentId = filteredDocs.last;
+        return Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(5.0),
               ),
-              headingTextStyle: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: WidgetStateColor.resolveWith(
-                  (states) => Theme.of(context).highlightColor),
-              columns: const [
-                DataColumn(label: Text(Strings.number)),
-                DataColumn(label: Text(Strings.company)),
-                DataColumn(label: Text(Strings.name)),
-                DataColumn(label: Text(Strings.phoneNumbers)),
-                DataColumn(label: Text(Strings.address)),
-                DataColumn(label: Text(Strings.edit)),
-                DataColumn(label: Text(Strings.delete)),
-              ],
-              rows: filteredDocs.map((entry) {
-                final customerEntry = Customer.fromMap(entry.data());
-                number++;
-                return DataRow(
-                  cells: [
-                    DataCell(ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 30),
-                        child: Text(number.toString()))),
-                    DataCell(Text(customerEntry.company)),
-                    DataCell(Text(customerEntry.name)),
-                    DataCell(Text(
-                        textDirection: TextDirection.ltr,
-                        '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
-                    DataCell(Text(customerEntry.address)),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
+              child: DataTable(
+                border: TableBorder.all(
+                  width: 0.1, // Adjust width as needed
+                  color: Colors.grey, // Change color to your preference
+                  style: BorderStyle.solid,
+                ),
+                headingTextStyle: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+                headingRowColor: WidgetStateColor.resolveWith(
+                    (states) => Theme.of(context).highlightColor),
+                columns: const [
+                  DataColumn(label: Text(Strings.number)),
+                  DataColumn(label: Text(Strings.company)),
+                  DataColumn(label: Text(Strings.name)),
+                  DataColumn(label: Text(Strings.phoneNumbers)),
+                  DataColumn(label: Text(Strings.address)),
+                  DataColumn(label: Text(Strings.edit)),
+                  DataColumn(label: Text(Strings.delete)),
+                ],
+                rows: filteredDocs.map((entry) {
+                  final customerEntry = Customer.fromMap(entry.data());
+                  number++;
+                  return DataRow(
+                    cells: [
+                      DataCell(ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 30),
+                          child: Text(number.toString()))),
+                      DataCell(Text(customerEntry.company)),
+                      DataCell(Text(customerEntry.name)),
+                      DataCell(Text(
+                          textDirection: TextDirection.ltr,
+                          '${customerEntry.phone1} ${customerEntry.phone2.isNotEmpty ? '\n${customerEntry.phone2}' : ''}')),
+                      DataCell(Text(customerEntry.address)),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: AlertDialog(
+                                    title: const Text(Strings.addCustomerTitle),
+                                    content: NewCustomerPage(
+                                        customer: customerEntry, id: entry.id),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      DataCell(IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: AlertDialog(
-                                  title: const Text(Strings.addCustomerTitle),
-                                  content: NewCustomerPage(
-                                      customer: customerEntry, id: entry.id),
-                                ),
+                              return ConfirmationDialog(
+                                title: Strings.customerDeleteTitle +
+                                    customerEntry.name,
+                                message: Strings.customerDeleteMessage,
+                                onConfirm: () async {
+                                  try {
+                                    await CustomerService.deleteCustomer(
+                                        entry.id);
+                                    Navigator.of(context).pop();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Failed to delete customer'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
                               );
                             },
                           );
                         },
-                      ),
-                    ),
-                    DataCell(IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return ConfirmationDialog(
-                              title: Strings.customerDeleteTitle +
-                                  customerEntry.name,
-                              message: Strings.customerDeleteMessage,
-                              onConfirm: () async {
-                                try {
-                                  await CustomerService.deleteCustomer(
-                                      entry.id);
-                                  Navigator.of(context).pop();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Failed to delete customer'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        );
-                      },
-                    )),
-                  ],
-                );
-              }).toList(),
+                      )),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        ],
-      );
+          ],
+        );
+      } else {
+        return NothingFound();
+      }
     } else {
-      return const Text(
-        Strings.customerNotFound,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.red,
-        ),
-      );
+      return NoDataExists();
     }
   }
 

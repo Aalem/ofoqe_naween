@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                     title: Text(
                       mainPages[key]!['title'] as String,
                       style: isSelected
-                          ? TextStyle(color: AppColors.primaryColor)
+                          ? TextStyle(color: AppColors.primaryColor.withAlpha(500), fontWeight: FontWeight.bold)
                           : null,
                     ),
                     tileColor: isSelected ? Colors.grey[300] : null,

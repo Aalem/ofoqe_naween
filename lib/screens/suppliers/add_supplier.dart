@@ -5,6 +5,7 @@ import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
 import 'package:ofoqe_naween/screens/suppliers/services/supplier_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class AddSupplierPage extends StatefulWidget {
@@ -41,19 +42,6 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
     }
   }
 
-  List<Widget> getResponsiveRow(List<Widget> widgets) {
-    return MediaQuery.of(context).size.width > 600
-        ? [
-            Row(
-              children: [
-                Expanded(child: widgets.first),
-                Expanded(child: widgets.last),
-              ],
-            )
-          ]
-        : widgets;
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -79,7 +67,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                 label: Strings.products,
                 onSaved: (value) => _supplier.products = value!,
               ),
-              ...getResponsiveRow([
+              ...ResponsiveHelper.genResponsiveTwoWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _supplier.phone1),
@@ -98,7 +86,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                   validationMessage: Strings.enterCorrectNumber,
                   onSaved: (value) => _supplier.phone2 = value!,
                 ),
-              ]),
+              ], context),
               CustomTextFormField(
                 enabled: !_isLoading,
                 controller: TextEditingController(text: _supplier.address),
@@ -106,7 +94,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                 validationMessage: Strings.enterAddress,
                 onSaved: (value) => _supplier.address = value!,
               ),
-              ...getResponsiveRow([
+              ...ResponsiveHelper.genResponsiveTwoWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _supplier.email),
@@ -120,10 +108,11 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                   controller: TextEditingController(text: _supplier.website),
                   label: Strings.website,
                   keyboardType: TextInputType.url,
-                  validationMessage: Strings.enterValidEmail,
+                  canBeEmpty: true,
+                  // validationMessage: Strings.enterValidEmail,
                   onSaved: (value) => _supplier.website = value!,
                 ),
-              ]),
+              ], context),
 
 
               const SizedBox(height: 20.0),

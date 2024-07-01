@@ -5,6 +5,7 @@ import 'package:ofoqe_naween/screens/customers/models/customer_model.dart';
 import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class NewCustomerPage extends StatefulWidget {
@@ -41,19 +42,6 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
     }
   }
 
-  List<Widget> getResponsiveRow(List<Widget> widgets) {
-    return MediaQuery.of(context).size.width > 600
-        ? [
-            Row(
-              children: [
-                Expanded(child: widgets.first),
-                Expanded(child: widgets.last),
-              ],
-            )
-          ]
-        : widgets;
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -66,7 +54,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...getResponsiveRow([
+              ...ResponsiveHelper.genResponsiveTwoWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   label: Strings.company,
@@ -81,7 +69,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                   validationMessage: Strings.enterName,
                   onSaved: (value) => _customer.name = value!,
                 ),
-              ]),
+              ], context),
               CustomTextFormField(
                 enabled: !_isLoading,
                 controller: TextEditingController(text: _customer.address),
@@ -89,7 +77,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 validationMessage: Strings.enterAddress,
                 onSaved: (value) => _customer.address = value!,
               ),
-              ...getResponsiveRow([
+              ...ResponsiveHelper.genResponsiveTwoWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _customer.phone1),
@@ -108,7 +96,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                   validationMessage: Strings.enterCorrectNumber,
                   onSaved: (value) => _customer.phone2 = value!,
                 ),
-              ]),
+              ], context),
               CustomTextFormField(
                 enabled: !_isLoading,
                 controller: TextEditingController(text: _customer.email),
