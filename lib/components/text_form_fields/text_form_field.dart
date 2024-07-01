@@ -146,8 +146,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       case TextInputType.url:
         if (rawValue != null &&
             rawValue.isNotEmpty &&
-            !RegExp(r'^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?$').hasMatch(rawValue)) {
-            return widget.validationMessage ?? 'Invalid website URL';
+            !RegExp(r'^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$').hasMatch(rawValue)) {
+          return widget.validationMessage ?? 'Invalid website URL';
         } else {
           return null;
         }

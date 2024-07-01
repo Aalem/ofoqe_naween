@@ -109,7 +109,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                   label: Strings.website,
                   keyboardType: TextInputType.url,
                   canBeEmpty: true,
-                  // validationMessage: Strings.enterValidEmail,
+                  validationMessage: Strings.enterValidWebsite,
                   onSaved: (value) => _supplier.website = value!,
                 ),
               ], context),

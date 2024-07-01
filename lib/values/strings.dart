@@ -120,5 +120,6 @@ class Strings{
   static const String supplierDeleteMessage = 'آیا مطمئن هستید میخواهیید این شرکت تولیدی را حذف کنید؟';
   static const String failedToDeleteSupplier = 'خطا در حذف شرکت تولیدی';
   static const String supplierDeleteTitle = 'حذف مشتری: ';
+  static const String enterValidWebsite = 'لطفاً وبسایت را به فرمت درست وارد کنید: www.website.com ';
 
 }
