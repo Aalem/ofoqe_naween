@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/components/nothing_found.dart';
+import 'package:ofoqe_naween/components/texts/appbar_title.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
 import 'package:ofoqe_naween/screens/suppliers/add_supplier.dart';
 import 'package:ofoqe_naween/screens/suppliers/collection_fields/supplier_fields.dart';
@@ -115,7 +116,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                     .bodyMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
                 headingRowColor: WidgetStateColor.resolveWith(
-                        (states) => Theme.of(context).highlightColor),
+                    (states) => Theme.of(context).highlightColor),
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
                   DataColumn(label: Text(Strings.supplier)),
@@ -181,8 +182,8 @@ class _SuppliersPageState extends State<SuppliersPage> {
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content:
-                                        Text(Strings.failedToDeleteSupplier),
+                                        content: Text(
+                                            Strings.failedToDeleteSupplier),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
@@ -200,7 +201,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
             ),
           ],
         );
-      }else{
+      } else {
         return NothingFound();
       }
     } else {
@@ -229,15 +230,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
         child: const Icon(Icons.add),
       ),
       appBar: AppBar(
-        title: const Row(
-          children: [
-            Expanded(
-                child: Text(
-              Strings.suppliers,
-              textAlign: TextAlign.right,
-            )),
-          ],
-        ),
+        title: const Align(alignment: Alignment.centerRight, child: AppbarTitle(title: Strings.supplier)),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _supplierStream,

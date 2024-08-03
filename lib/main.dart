@@ -10,6 +10,7 @@ import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,15 @@ class MyApp extends StatelessWidget {
       child: ChangeNotifierProvider<NavigationProvider>(
         create: (context) => NavigationProvider(),
         child: MaterialApp(
+          builder: (context, child) => ResponsiveBreakpoints.builder(
+            breakpoints: [
+              const Breakpoint(start: 0, end: 450, name: MOBILE),
+              const Breakpoint(start: 451, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+            child: child!,
+          ),
           title: Strings.appName,
           theme: AppTheme(context: context).getTheme(),
           initialRoute: '/home',
@@ -51,3 +61,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+

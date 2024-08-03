@@ -17,6 +17,10 @@ class Strings{
   static const String nothingFoundGuide = 'لطفاً واژه های جستجو را عوض نموده، دوباره امتحان کنید!';
   static const String addNewData = 'برای ثبت اطلاعات میتوانید روی دکمه زیر کلیک کنید!';
 
+  // Page Under Construction
+  static const String underConstructionTitle = 'این صفحه تحت بازسازی قرار دارد';
+  static const String underConstructionMessage = 'کار روی این صفحه جریان دارد و به زودی فعال خواهد شد';
+
   // Ledger DataTable Titles
   static const String jalaliDate = 'تاریخ شمسی';
   static const String gregorianDate = 'تاریخ میلادی';

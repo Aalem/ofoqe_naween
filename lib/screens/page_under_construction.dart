@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ofoqe_naween/values/strings.dart';
 
 class UnderConstructionPage extends StatelessWidget {
   @override
@@ -8,22 +9,22 @@ class UnderConstructionPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.construction,
               size: 100,
               color: Colors.orange,
             ),
-            SizedBox(height: 20),
-            Text(
-              'This page is under construction',
+            const SizedBox(height: 20),
+            const Text(
+              Strings.underConstructionTitle,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              'We are working on it and will be back soon!',
+              Strings.underConstructionMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
