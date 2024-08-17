@@ -7,7 +7,7 @@ import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
-import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
@@ -19,12 +19,12 @@ import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class MoneyExchange extends StatefulWidget {
+class TransactionsPage extends StatefulWidget {
   @override
-  _MoneyExchangeState createState() => _MoneyExchangeState();
+  _TransactionsPageState createState() => _TransactionsPageState();
 }
 
-class _MoneyExchangeState extends State<MoneyExchange> {
+class _TransactionsPageState extends State<TransactionsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
@@ -61,12 +61,12 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.moneyExchange);
+    _firestore.collection(CollectionNames.moneyExchange);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
       Jalali jalaliDate =
-          DateTimeUtils.stringToJalaliDate(_specificDateController.text);
+      DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
 
       query = query.where(MoneyExchangeFields.gregorianDate,
@@ -74,9 +74,9 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     } else if (_selectedDateRange != null) {
       query = query
           .where(MoneyExchangeFields.gregorianDate,
-              isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
+          isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
           .where(MoneyExchangeFields.gregorianDate,
-              isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
+          isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
     // Filter by debit/credit if a checkbox is selected, unless both are checked
@@ -187,7 +187,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                     .bodyMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
                 headingRowColor: WidgetStateColor.resolveWith(
-                    (states) => Theme.of(context).highlightColor),
+                        (states) => Theme.of(context).highlightColor),
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
                   DataColumn(label: Text(Strings.jalaliDate)),
@@ -208,8 +208,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                           child: Text(number.toString()))),
                       DataCell(Text(
                         Jalali.fromDateTime(transactionEntry[
-                                    MoneyExchangeFields.gregorianDate]
-                                .toDate())
+                        MoneyExchangeFields.gregorianDate]
+                            .toDate())
                             .formatCompactDate()
                             .toString(),
                       )),
@@ -240,8 +240,8 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                                     title: const Text(Strings.editTransaction),
                                     content: AddTransaction(
                                         transactionModel:
-                                            TransactionModel.fromMap(
-                                                transactionEntry, entry.id),
+                                        TransactionModel.fromMap(
+                                            transactionEntry, entry.id),
                                         id: entry.id),
                                   ),
                                 );
@@ -259,7 +259,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                               return ConfirmationDialog(
                                 title: Strings.deleteTransaction +
                                     transactionEntry[
-                                        MoneyExchangeFields.description],
+                                    MoneyExchangeFields.description],
                                 message: Strings.deleteTransactionMessage,
                                 onConfirm: () async {
                                   try {
@@ -312,7 +312,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
     if (picker != null) {
       _selectedDateRange = picker;
       _dateRangeController.text =
-          '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
+      '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
       _specificDateController.clear();
     }
     _search();
@@ -338,29 +338,6 @@ class _MoneyExchangeState extends State<MoneyExchange> {
         },
         child: const Icon(Icons.add),
       ),
-      appBar: AppBar(
-        title: StreamBuilder<double>(
-          stream: MoneyExchangeService.getBalanceStream(),
-          builder: (context, snapshot) {
-            double balance = snapshot.hasData ? snapshot.data! : 0.0;
-
-            return Row(
-              children: [
-                Expanded(
-                    child: Text(
-                  '${balance >= 0 ? '\$ ' : '\$ - '}${Strings.balance}: ${GeneralFormatter.formatNumber(balance.abs().toString()).split('.')[0]}',
-                  textAlign: TextAlign.start,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: balance >= 0
-                          ? Colors.green
-                          : Colors.red), // Set text alignment to start
-                )),
-                const Text(Strings.moneyExchange, textAlign: TextAlign.right),
-              ],
-            );
-          },
-        ),
-      ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _transactionStream,
         builder: (context, snapshot) {
@@ -380,7 +357,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                 Container(
                   color: AppColors.appBarBG,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
                     children: [
                       Expanded(
@@ -468,7 +445,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                                 firstDate: Jalali(1385, 8),
                                 lastDate: Jalali(1450, 9),
                                 initialEntryMode:
-                                    DDatePickerEntryMode.calendarOnly,
+                                DDatePickerEntryMode.calendarOnly,
                                 initialDatePickerMode: DDatePickerMode.day,
                                 builder: (context, child) {
                                   return Theme(
@@ -646,7 +623,7 @@ class _MoneyExchangeState extends State<MoneyExchange> {
                       if (pickedDateRange != null) {
                         _selectedDateRange = pickedDateRange;
                         _dateRangeController.text =
-                            "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                        "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
                       }
                     },
                   ),

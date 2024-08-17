@@ -5,7 +5,7 @@ import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
-import 'package:ofoqe_naween/screens/money_exchange/add_transaction.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';

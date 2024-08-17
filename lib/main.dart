@@ -6,7 +6,7 @@ import 'package:ofoqe_naween/screens/buys/buys.dart';
 import 'package:ofoqe_naween/screens/home_page.dart';
 import 'package:ofoqe_naween/screens/ledger/add_to_ledger.dart';
 import 'package:ofoqe_naween/screens/login_page.dart';
-import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/money_exchange.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';

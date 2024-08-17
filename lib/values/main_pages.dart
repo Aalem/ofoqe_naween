@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/screens/buys/buys.dart';
 import 'package:ofoqe_naween/screens/customers/customers.dart';
-import 'package:ofoqe_naween/screens/money_exchange/money_exchange.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/money_exchange.dart';
 import 'package:ofoqe_naween/screens/page_under_construction.dart';
 import 'package:ofoqe_naween/screens/suppliers/suppliers.dart';
 import 'strings.dart';

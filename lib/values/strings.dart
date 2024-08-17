@@ -5,6 +5,7 @@ class Strings{
   static const String customers = 'مشتری ها';
   static const String journal = 'روزنامچه';
   static const String moneyExchange = 'صرافی';
+  static const String moneyExchanges = 'صرافی ها';
   static const String logout = 'خروج';
   static const String buys = 'خریدات';
   static const String suppliers = 'شرکت های تولیدی';
