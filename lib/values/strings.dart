@@ -5,7 +5,6 @@ class Strings{
   static const String customers = 'مشتری ها';
   static const String journal = 'روزنامچه';
   static const String moneyExchange = 'صرافی';
-  static const String moneyExchanges = 'صرافی ها';
   static const String logout = 'خروج';
   static const String buys = 'خریدات';
   static const String suppliers = 'شرکت های تولیدی';
@@ -93,19 +92,19 @@ class Strings{
   static const String grandBalance = 'بیلانس عمومی';
   static const String enterDebit = 'مبلغ رسید را وارد کنید!';
   static const String enterCredit = 'مبلغ برداشت را وارد کنید!';
-  static const String transactionAddedSuccessfully = 'تراکنش موفقانه ثبت گردید';
-  static const String transactionUpdatedSuccessfully = 'تراکنش موفقانه ویرایش گردید';
+  static const String transactionAddedSuccessfully = 'معامله موفقانه ثبت گردید';
+  static const String transactionUpdatedSuccessfully = 'معامله موفقانه ویرایش گردید';
   static const String errorUpdatingTransaction = 'خطا در آپدیت اطلاعات صرافی!';
   static const String errorAddingTransaction = 'خطا در ثبت اطلاعات صرافی!';
-  static const String addTransaction = 'اضافه نمودن تراکنش';
-  static const String editTransaction = 'ویرایش تراکنش';
-  static const String deleteTransaction = 'حذف تراکنش: ';
-  static const String deleteTransactionMessage = 'آیا مطمئن هستید میخواهیید این تراکنش را حذف کنید؟';
-  static const String failedToDeletingTransaction = 'خطا در حذف تراکنش';
-  static const String transactionNotFound = 'تراکنشی موجود نیست';
-  static const String transactions = 'تراکنش ها';
+  static const String addTransaction = 'اضافه نمودن معامله';
+  static const String editTransaction = 'ویرایش معامله';
+  static const String deleteTransaction = 'حذف معامله: ';
+  static const String deleteTransactionMessage = 'آیا مطمئن هستید میخواهیید این معامله را حذف کنید؟';
+  static const String failedToDeletingTransaction = 'خطا در حذف معامله';
+  static const String transactionNotFound = 'معاملهی موجود نیست';
+  static const String transactions = 'معاملات';
   static const String searchByDescription = 'جستجو به اساس توضیحات';
-  static const String paymentTypeNotSelected = 'لطفاً نوع تراکنش را انتخاب کنید!';
+  static const String paymentTypeNotSelected = 'لطفاً نوع معامله را انتخاب کنید!';
   static const String somethingWentWrong = 'خطای غیر منتظره';
   static const String dateRange = 'محدوده تاریخ';
   static const String date = 'تاریخ';
@@ -127,4 +126,7 @@ class Strings{
   static const String supplierDeleteTitle = 'حذف مشتری: ';
   static const String enterValidWebsite = 'لطفاً وبسایت را به فرمت درست وارد کنید: www.website.com ';
 
+  // Money Exchanges
+  static const String moneyExchanges = 'صرافی ها';
+  static const String addExchange = 'اضافه کردن صرافی';
 }

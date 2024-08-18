@@ -19,12 +19,12 @@ import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class TransactionsPage extends StatefulWidget {
+class MoneyExchangesPage extends StatefulWidget {
   @override
-  _TransactionsPageState createState() => _TransactionsPageState();
+  _MoneyExchangesPageState createState() => _MoneyExchangesPageState();
 }
 
-class _TransactionsPageState extends State<TransactionsPage> {
+class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
@@ -324,7 +324,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text(Strings.addTransaction),
+                title: Text(Strings.addExchange),
                 content: AddTransaction(),
               );
             },

@@ -229,16 +229,13 @@ class _BuysState extends State<Buys> {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return Directionality(
-                                textDirection: TextDirection.rtl,
-                                child: AlertDialog(
-                                  title: const Text(Strings.editTransaction),
-                                  content: AddTransaction(
-                                      transactionModel:
-                                          TransactionModel.fromMap(
-                                              transactionEntry, entry.id),
-                                      id: entry.id),
-                                ),
+                              return AlertDialog(
+                                title: const Text(Strings.editTransaction),
+                                content: AddTransaction(
+                                    transactionModel:
+                                        TransactionModel.fromMap(
+                                            transactionEntry, entry.id),
+                                    id: entry.id),
                               );
                             },
                           );
@@ -325,12 +322,9 @@ class _BuysState extends State<Buys> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return const Directionality(
-                textDirection: TextDirection.rtl,
-                child: AlertDialog(
-                  title: Text(Strings.addTransaction),
-                  content: AddTransaction(),
-                ),
+              return AlertDialog(
+                title: Text(Strings.addTransaction),
+                content: AddTransaction(),
               );
             },
           );
@@ -372,228 +366,225 @@ class _BuysState extends State<Buys> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: Column(
-              children: [
+          return Column(
+            children: [
+              Container(
+                color: AppColors.appBarBG,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: Strings.searchByDescription,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          prefixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () {
+                              _clearFilters(keepDescription: true);
+                              _search();
+                            },
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              if (_searchController.text.isNotEmpty) {
+                                _searchController.clear();
+                                _search();
+                              }
+                            },
+                          ),
+                        ),
+                        onSubmitted: (value) {
+                          _clearFilters(keepDescription: true);
+                          _search();
+                        },
+                      ),
+                    ),
+                    ButtonIcon(
+                        icon: Icons.filter_list,
+                        onPressed: () {
+                          setState(() {
+                            if (ScreenSize.isPhone(context)) {
+                              showDialog(
+                                  builder: (context) {
+                                    return _buildFilterDialog(context);
+                                  },
+                                  context: context);
+                            } else {
+                              _showFilters = !_showFilters;
+                              if (!_showFilters) {
+                                _clearFilters();
+                              }
+                            }
+                          });
+                        }),
+                  ],
+                ),
+              ),
+              // if (_showFilters) const SizedBox(height: 10),
+              if (_showFilters && ScreenSize.getWidth(context) >= 1200)
                 Container(
                   color: AppColors.appBarBG,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
                       Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: Strings.searchByDescription,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            prefixIcon: IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {
-                                _clearFilters(keepDescription: true);
-                                _search();
+                        flex: 2,
+                        child: CustomTextFormField(
+                          label: Strings.dateRange,
+                          controller: _dateRangeController,
+                          readOnly: true,
+                          onTap: () async {
+                            await _pickDateRange(context);
+                          },
+                          displaySuffix: false,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: CustomTextFormField(
+                          label: Strings.date,
+                          displaySuffix: false,
+                          controller: _specificDateController,
+                          readOnly: true,
+                          onTap: () async {
+                            final Jalali? picked = await showDariDatePicker(
+                              context: context,
+                              initialDate: Jalali.now(),
+                              firstDate: Jalali(1385, 8),
+                              lastDate: Jalali(1450, 9),
+                              initialEntryMode:
+                                  DDatePickerEntryMode.calendarOnly,
+                              initialDatePickerMode: DDatePickerMode.day,
+                              builder: (context, child) {
+                                return Theme(
+                                  data: ThemeData(
+                                    dialogTheme: const DialogTheme(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(0)),
+                                      ),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
                               },
-                            ),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                if (_searchController.text.isNotEmpty) {
-                                  _searchController.clear();
-                                  _search();
-                                }
-                              },
-                            ),
-                          ),
-                          onSubmitted: (value) {
-                            _clearFilters(keepDescription: true);
-                            _search();
+                            );
+                            if (picked != null) {
+                              _dateRangeController.clear();
+                              _specificDateController.text =
+                                  picked.formatCompactDate();
+                              _search();
+                            }
                           },
                         ),
                       ),
-                      ButtonIcon(
-                          icon: Icons.filter_list,
-                          onPressed: () {
-                            setState(() {
-                              if (ScreenSize.isPhone(context)) {
-                                showDialog(
-                                    builder: (context) {
-                                      return _buildFilterDialog(context);
-                                    },
-                                    context: context);
-                              } else {
-                                _showFilters = !_showFilters;
-                                if (!_showFilters) {
-                                  _clearFilters();
-                                }
-                              }
-                            });
-                          }),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isDebitChecked,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      _isDebitChecked = value!;
+                                    });
+                                  },
+                                ),
+                                const Text(Strings.debit),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isCreditChecked,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      _isCreditChecked = value!;
+                                    });
+                                  },
+                                ),
+                                const Text(Strings.credit),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              onPressed: _search,
+                              icon: const Icon(Icons.search),
+                            ),
+                            IconButton(
+                              onPressed: _clearFilters,
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                // if (_showFilters) const SizedBox(height: 10),
-                if (_showFilters && ScreenSize.getWidth(context) >= 1200)
-                  Container(
-                    color: AppColors.appBarBG,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: CustomTextFormField(
-                            label: Strings.dateRange,
-                            controller: _dateRangeController,
-                            readOnly: true,
-                            onTap: () async {
-                              await _pickDateRange(context);
-                            },
-                            displaySuffix: false,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: CustomTextFormField(
-                            label: Strings.date,
-                            displaySuffix: false,
-                            controller: _specificDateController,
-                            readOnly: true,
-                            onTap: () async {
-                              final Jalali? picked = await showDariDatePicker(
-                                context: context,
-                                initialDate: Jalali.now(),
-                                firstDate: Jalali(1385, 8),
-                                lastDate: Jalali(1450, 9),
-                                initialEntryMode:
-                                    DDatePickerEntryMode.calendarOnly,
-                                initialDatePickerMode: DDatePickerMode.day,
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: ThemeData(
-                                      dialogTheme: const DialogTheme(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(0)),
-                                        ),
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                              if (picked != null) {
-                                _dateRangeController.clear();
-                                _specificDateController.text =
-                                    picked.formatCompactDate();
-                                _search();
-                              }
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _isDebitChecked,
-                                    onChanged: (bool? value) {
-                                      setState(() {
-                                        _isDebitChecked = value!;
-                                      });
-                                    },
-                                  ),
-                                  const Text(Strings.debit),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _isCreditChecked,
-                                    onChanged: (bool? value) {
-                                      setState(() {
-                                        _isCreditChecked = value!;
-                                      });
-                                    },
-                                  ),
-                                  const Text(Strings.credit),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              IconButton(
-                                onPressed: _search,
-                                icon: const Icon(Icons.search),
-                              ),
-                              IconButton(
-                                onPressed: _clearFilters,
-                                icon: const Icon(Icons.clear),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Scrollbar(
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Scrollbar(
+                    controller: _verticalScrollController,
+                    thumbVisibility: true,
+                    trackVisibility: true,
+                    child: SingleChildScrollView(
                       controller: _verticalScrollController,
-                      thumbVisibility: true,
-                      trackVisibility: true,
-                      child: SingleChildScrollView(
-                        controller: _verticalScrollController,
-                        scrollDirection: Axis.vertical,
-                        child: Scrollbar(
+                      scrollDirection: Axis.vertical,
+                      child: Scrollbar(
+                        controller: _horizontalScrollController,
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        child: SingleChildScrollView(
                           controller: _horizontalScrollController,
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          child: SingleChildScrollView(
-                            controller: _horizontalScrollController,
-                            scrollDirection: Axis.horizontal,
-                            child: _buildDataTable(snapshot.data!),
-                          ),
+                          scrollDirection: Axis.horizontal,
+                          child: _buildDataTable(snapshot.data!),
                         ),
                       ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Visibility(
-                        visible: _currentPage > 1,
-                        child: TextButton(
-                          onPressed: _handlePreviousPage,
-                          child: const Text(Strings.previous),
-                        ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Visibility(
+                      visible: _currentPage > 1,
+                      child: TextButton(
+                        onPressed: _handlePreviousPage,
+                        child: const Text(Strings.previous),
                       ),
-                      const SizedBox(width: 10.0),
-                      Text('${Strings.page} $_currentPage'),
-                      const SizedBox(width: 10.0),
-                      Visibility(
-                        visible: snapshot.data!.docs.length == _pageSize,
-                        child: TextButton(
-                          onPressed: _handleNextPage,
-                          child: const Text(Strings.next),
-                        ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text('${Strings.page} $_currentPage'),
+                    const SizedBox(width: 10.0),
+                    Visibility(
+                      visible: snapshot.data!.docs.length == _pageSize,
+                      child: TextButton(
+                        onPressed: _handleNextPage,
+                        child: const Text(Strings.next),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -601,101 +592,98 @@ class _BuysState extends State<Buys> {
   }
 
   Widget _buildFilterDialog(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text(Strings.filter),
-            content: SingleChildScrollView(
-              child: Column(
-                children: [
-                  CustomTextFormField(
-                    label: Strings.date,
-                    controller: _specificDateController,
-                    onTap: () async {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      var pickedDate = await showDariDatePicker(
-                        context: context,
-                        initialDate: Jalali.now(),
-                        firstDate: Jalali(1385, 8),
-                        lastDate: Jalali.now(),
-                      );
-                      if (pickedDate != null) {
-                        _specificDateController.text =
-                            pickedDate.formatCompactDate();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  CustomTextFormField(
-                    label: Strings.dateRange,
-                    controller: _dateRangeController,
-                    onTap: () async {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                      var pickedDateRange = await showDariDateRangePicker(
-                        context: context,
-                        initialDateRange: JalaliRange(
-                          start: Jalali.now().withDay(1),
-                          end: Jalali.now(),
-                        ),
-                        firstDate: Jalali(1385, 8),
-                        lastDate: Jalali.now(),
-                      );
-                      if (pickedDateRange != null) {
-                        _selectedDateRange = pickedDateRange;
-                        _dateRangeController.text =
-                            "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _isDebitChecked,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _isDebitChecked = value!;
-                          });
-                        },
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          title: const Text(Strings.filter),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                CustomTextFormField(
+                  label: Strings.date,
+                  controller: _specificDateController,
+                  onTap: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    var pickedDate = await showDariDatePicker(
+                      context: context,
+                      initialDate: Jalali.now(),
+                      firstDate: Jalali(1385, 8),
+                      lastDate: Jalali.now(),
+                    );
+                    if (pickedDate != null) {
+                      _specificDateController.text =
+                          pickedDate.formatCompactDate();
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                CustomTextFormField(
+                  label: Strings.dateRange,
+                  controller: _dateRangeController,
+                  onTap: () async {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    var pickedDateRange = await showDariDateRangePicker(
+                      context: context,
+                      initialDateRange: JalaliRange(
+                        start: Jalali.now().withDay(1),
+                        end: Jalali.now(),
                       ),
-                      const Text(Strings.debit),
-                      const SizedBox(width: 10),
-                      Checkbox(
-                        value: _isCreditChecked,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _isCreditChecked = value!;
-                          });
-                        },
-                      ),
-                      const Text(Strings.credit),
-                    ],
-                  ),
-                ],
-              ),
+                      firstDate: Jalali(1385, 8),
+                      lastDate: Jalali.now(),
+                    );
+                    if (pickedDateRange != null) {
+                      _selectedDateRange = pickedDateRange;
+                      _dateRangeController.text =
+                          "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isDebitChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isDebitChecked = value!;
+                        });
+                      },
+                    ),
+                    const Text(Strings.debit),
+                    const SizedBox(width: 10),
+                    Checkbox(
+                      value: _isCreditChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isCreditChecked = value!;
+                        });
+                      },
+                    ),
+                    const Text(Strings.credit),
+                  ],
+                ),
+              ],
             ),
-            actions: [
-              DialogButton(
-                title: Strings.filter,
-                buttonType: ButtonType.positive,
-                onPressed: () {
-                  _search();
-                  Navigator.of(context).pop();
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _clearFilters();
-                  Navigator.of(context).pop();
-                },
-                child: const Text(Strings.clearFilter),
-              ),
-            ],
-          );
-        },
-      ),
+          ),
+          actions: [
+            DialogButton(
+              title: Strings.filter,
+              buttonType: ButtonType.positive,
+              onPressed: () {
+                _search();
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _clearFilters();
+                Navigator.of(context).pop();
+              },
+              child: const Text(Strings.clearFilter),
+            ),
+          ],
+        );
+      },
     );
   }
 }

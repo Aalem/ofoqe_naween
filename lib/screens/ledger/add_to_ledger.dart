@@ -46,166 +46,160 @@ class _AddLedgerEntryState extends State<AddLedgerEntry> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Container(
-        width: MediaQuery.of(context).size.width>600? MediaQuery.of(context).size.width/2: null,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: _dateTextController,
-                  decoration: const InputDecoration(labelText: Strings.gregorianDate),
-                  readOnly: true,
-                  // Use date picker instead of direct input
-                  onTap: () async {
-                    final DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate ?? DateTime.now(),
-                      firstDate: DateTime(2020, 1, 1),
-                      lastDate: DateTime.now(),
-                    );
-                    if (picked != null && picked != _selectedDate) {
-                      setState(() {
-                        _selectedDate = picked;
-                        _dateTextController.text = intl.DateFormat.yMd()
-                            .format(_selectedDate); // Format and set the date
-                      });
-                    }
-                  },
-                  validator: (value) =>
-                  value == null ? Strings.selectADate : null,
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: Strings.description),
-                  validator: (value) =>
-                  value!.isEmpty ? Strings.enterDescription : null,
-                  onSaved: (newValue) => _description = newValue!,
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: Strings.amount),
-                  keyboardType: TextInputType.number,
-                  validator: (value) =>
-                  value!.isEmpty ? Strings.enterAmount : null,
-                  onSaved: (newValue) => _amount = double.parse(newValue!),
-                ),
-                const SizedBox(height: 16.0),
-                DropdownButtonFormField(
-                  value: _category,
-                  hint: const Text(Strings.selectCategory),
-                  items: categories.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
+    return Container(
+      width: MediaQuery.of(context).size.width>600? MediaQuery.of(context).size.width/2: null,
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _dateTextController,
+                decoration: const InputDecoration(labelText: Strings.gregorianDate),
+                readOnly: true,
+                // Use date picker instead of direct input
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate ?? DateTime.now(),
+                    firstDate: DateTime(2020, 1, 1),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null && picked != _selectedDate) {
                     setState(() {
-                      _category = newValue as String;
+                      _selectedDate = picked;
+                      _dateTextController.text = intl.DateFormat.yMd()
+                          .format(_selectedDate); // Format and set the date
                     });
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                DropdownButtonFormField(
-                  value: _account,
-                  hint: const Text(Strings.selectAcount),
-                  items: accounts.map((account) {
-                    return DropdownMenuItem(
-                      value: account,
-                      child: Text(account),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _account = newValue as String;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                DropdownButtonFormField(
-                  value: _paymentMethod,
-                  hint: const Text(Strings.selectPaymentMethod),
-                  items: paymentMethods.map((method) {
-                    return DropdownMenuItem(
-                      value: method,
-                      child: Text(method),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _paymentMethod = newValue as String;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: Strings.reference),
-                  onSaved: (newValue) => _reference = newValue!,
-                ),
-                const SizedBox(height: 16.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ElevatedButton(
-                          onPressed: _addLedgerEntry,
-                          child: const Text(Strings.save),
-                        ),
+                  }
+                },
+                validator: (value) =>
+                value == null ? Strings.selectADate : null,
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                decoration: const InputDecoration(labelText: Strings.description),
+                validator: (value) =>
+                value!.isEmpty ? Strings.enterDescription : null,
+                onSaved: (newValue) => _description = newValue!,
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                decoration: const InputDecoration(labelText: Strings.amount),
+                keyboardType: TextInputType.number,
+                validator: (value) =>
+                value!.isEmpty ? Strings.enterAmount : null,
+                onSaved: (newValue) => _amount = double.parse(newValue!),
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField(
+                value: _category,
+                hint: const Text(Strings.selectCategory),
+                items: categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _category = newValue as String;
+                  });
+                },
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField(
+                value: _account,
+                hint: const Text(Strings.selectAcount),
+                items: accounts.map((account) {
+                  return DropdownMenuItem(
+                    value: account,
+                    child: Text(account),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _account = newValue as String;
+                  });
+                },
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField(
+                value: _paymentMethod,
+                hint: const Text(Strings.selectPaymentMethod),
+                items: paymentMethods.map((method) {
+                  return DropdownMenuItem(
+                    value: method,
+                    child: Text(method),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _paymentMethod = newValue as String;
+                  });
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                decoration: const InputDecoration(labelText: Strings.reference),
+                onSaved: (newValue) => _reference = newValue!,
+              ),
+              const SizedBox(height: 16.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: ElevatedButton(
+                        onPressed: _addLedgerEntry,
+                        child: const Text(Strings.save),
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
 
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.grey, // Change button color
-                            // onSurface: Colors.white, // Change text color
-                            textStyle: const TextStyle(color: Colors.white),
-                            // Add more customization as needed
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: AlertDialog(
-                                    title: const Text(Strings.dialogCancelTitle),
-                                    content: const Text(Strings.dialogCancelMessage),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          Navigator.pop(context); // Close the dialog and the page
-                                        },
-                                        child: const Text(Strings.yes),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text(Strings.no),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: const Text(Strings.cancel),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.grey, // Change button color
+                          // onSurface: Colors.white, // Change text color
+                          textStyle: const TextStyle(color: Colors.white),
+                          // Add more customization as needed
                         ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text(Strings.dialogCancelTitle),
+                                content: const Text(Strings.dialogCancelMessage),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      Navigator.pop(context); // Close the dialog and the page
+                                    },
+                                    child: const Text(Strings.yes),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(Strings.no),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: const Text(Strings.cancel),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

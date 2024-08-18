@@ -68,55 +68,52 @@ class _LedgerPageState extends State<LedgerPage> {
               return const Center(child: CircularProgressIndicator());
             default:
               final ledgerEntries = snapshot.data!.docs;
-              return Directionality(
-                textDirection: dartUI.TextDirection.rtl,
-                child: Align(
-                  alignment: Alignment.topCenter,
+              return Align(
+                alignment: Alignment.topCenter,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical, // Enable vertical scrolling
                   child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical, // Enable vertical scrolling
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      // Enable horizontal scrolling
-                      child: DataTable(
-                        headingTextStyle: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        headingRowColor: MaterialStateColor.resolveWith(
-                            (states) => Theme.of(context).highlightColor),
-                        columns: [
-                          DataColumn(label: Text(Strings.gregorianDate)),
-                          DataColumn(label: Text(Strings.description)),
-                          DataColumn(label: Text(Strings.amount)),
-                          DataColumn(label: Text(Strings.category)),
-                          DataColumn(label: Text(Strings.account)),
-                          DataColumn(label: Text(Strings.paymentMethod)),
-                        ],
-                        rows: ledgerEntries.map((entry) {
-                          final ledgerEntry = entry.data();
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(
-                                  formatDate(ledgerEntry['date'].toDate()))),
-                              DataCell(Text(ledgerEntry['description'] ??
-                                  'No description')),
-                              DataCell(Text(
-                                ledgerEntry['amount']?.toStringAsFixed(2) ??
-                                    '0.00',
-                                style: TextStyle(
-                                  color: ledgerEntry['amount'] as double < 0
-                                      ? Colors.red
-                                      : Colors.green,
-                                ),
-                              )),
-                              DataCell(Text(ledgerEntry['category'] ?? '')),
-                              DataCell(Text(ledgerEntry['account'] ?? '')),
-                              DataCell(
-                                  Text(ledgerEntry['paymentMethod'] ?? '')),
-                            ],
-                          );
-                        }).toList(),
-                      ),
+                    scrollDirection: Axis.horizontal,
+                    // Enable horizontal scrolling
+                    child: DataTable(
+                      headingTextStyle: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Theme.of(context).highlightColor),
+                      columns: [
+                        DataColumn(label: Text(Strings.gregorianDate)),
+                        DataColumn(label: Text(Strings.description)),
+                        DataColumn(label: Text(Strings.amount)),
+                        DataColumn(label: Text(Strings.category)),
+                        DataColumn(label: Text(Strings.account)),
+                        DataColumn(label: Text(Strings.paymentMethod)),
+                      ],
+                      rows: ledgerEntries.map((entry) {
+                        final ledgerEntry = entry.data();
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(
+                                formatDate(ledgerEntry['date'].toDate()))),
+                            DataCell(Text(ledgerEntry['description'] ??
+                                'No description')),
+                            DataCell(Text(
+                              ledgerEntry['amount']?.toStringAsFixed(2) ??
+                                  '0.00',
+                              style: TextStyle(
+                                color: ledgerEntry['amount'] as double < 0
+                                    ? Colors.red
+                                    : Colors.green,
+                              ),
+                            )),
+                            DataCell(Text(ledgerEntry['category'] ?? '')),
+                            DataCell(Text(ledgerEntry['account'] ?? '')),
+                            DataCell(
+                                Text(ledgerEntry['paymentMethod'] ?? '')),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),

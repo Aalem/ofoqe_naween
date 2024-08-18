@@ -142,27 +142,24 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: AlertDialog(
-                                    title:
-                                        const Text(Strings.dialogCancelTitle),
-                                    content:
-                                        const Text(Strings.dialogCancelMessage),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text(Strings.yes),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text(Strings.no),
-                                      ),
-                                    ],
-                                  ),
+                                return AlertDialog(
+                                  title:
+                                      const Text(Strings.dialogCancelTitle),
+                                  content:
+                                      const Text(Strings.dialogCancelMessage),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text(Strings.yes),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text(Strings.no),
+                                    ),
+                                  ],
                                 );
                               },
                             );

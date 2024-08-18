@@ -66,12 +66,12 @@ class _HomePageState extends State<HomePage> {
       endDrawer: _buildDrawer(context),
       body: Row(
         children: [
-          contentWidget(),
           Visibility(
             // visible: !ScreenSize.isPhone(context),
             visible: !ResponsiveBreakpoints.of(context).isMobile,
             child: _buildDrawer(context),
           ),
+          contentWidget(),
         ],
       ),
     );
@@ -120,43 +120,40 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildDrawer(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SidebarX(
-        theme: AppTheme(context: context).getSideBarDark(),
-        extendedTheme: AppTheme(context: context).getExtendedDarkTheme(),
-        footerDivider: divider,
-        headerBuilder: (context, extended) {
-          return SizedBox(
-            height: 150,
-            child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SvgPicture.asset('assets/images/logo_light.svg')),
-          );
-        },
-        controller: sidebarXController,
-        items: [
-          ...mainPages.keys.map((String key) {
-            return SidebarXItem(
-              icon: mainPages[key]!['icon'] as IconData,
-              label: mainPages[key]!['title'] as String,
-              onTap: () {
-                NavigationProvider.selectedKey = key;
-                Provider.of<NavigationProvider>(context, listen: false)
-                    .updatePage(mainPages[key]!['widget'] as Widget);
-              },
-            );
-          }),
-          // SidebarXItem(),
-          SidebarXItem(
-            icon: Icons.home,
-            label: Strings.logout,
+    return SidebarX(
+      theme: AppTheme(context: context).getSideBarDark(),
+      extendedTheme: AppTheme(context: context).getExtendedDarkTheme(),
+      footerDivider: divider,
+      headerBuilder: (context, extended) {
+        return SizedBox(
+          height: 150,
+          child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SvgPicture.asset('assets/images/logo_light.svg')),
+        );
+      },
+      controller: sidebarXController,
+      items: [
+        ...mainPages.keys.map((String key) {
+          return SidebarXItem(
+            icon: mainPages[key]!['icon'] as IconData,
+            label: mainPages[key]!['title'] as String,
             onTap: () {
-              debugPrint('Logout');
+              NavigationProvider.selectedKey = key;
+              Provider.of<NavigationProvider>(context, listen: false)
+                  .updatePage(mainPages[key]!['widget'] as Widget);
             },
-          ),
-        ],
-      ),
+          );
+        }),
+        // SidebarXItem(),
+        SidebarXItem(
+          icon: Icons.home,
+          label: Strings.logout,
+          onTap: () {
+            debugPrint('Logout');
+          },
+        ),
+      ],
     );
   }
 }

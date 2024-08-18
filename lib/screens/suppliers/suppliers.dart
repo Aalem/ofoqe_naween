@@ -151,13 +151,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: AlertDialog(
-                                    title: const Text(Strings.addCustomerTitle),
-                                    content: AddSupplierPage(
-                                        supplier: supplierEntry, id: entry.id),
-                                  ),
+                                return AlertDialog(
+                                  title: const Text(Strings.addCustomerTitle),
+                                  content: AddSupplierPage(
+                                      supplier: supplierEntry, id: entry.id),
                                 );
                               },
                             );
@@ -217,12 +214,9 @@ class _SuppliersPageState extends State<SuppliersPage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return const Directionality(
-                textDirection: TextDirection.rtl,
-                child: AlertDialog(
-                  title: Text(Strings.addSupplierTitle),
-                  content: AddSupplierPage(),
-                ),
+              return AlertDialog(
+                title: Text(Strings.addSupplierTitle),
+                content: AddSupplierPage(),
               );
             },
           );
@@ -243,94 +237,91 @@ class _SuppliersPageState extends State<SuppliersPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: Column(
-              children: [
-                Container(
-                  color: AppColors.appBarBG,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: Strings.search,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      prefixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          // _search();
-                          setState(() {});
-                        },
-                      ),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          if (_searchController.text.isNotEmpty) {
-                            _searchController.clear();
-                            _search();
-                          }
-                        },
-                      ),
+          return Column(
+            children: [
+              Container(
+                color: AppColors.appBarBG,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: Strings.search,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                    onSubmitted: (value) {
-                      // _search();
-                      setState(() {});
-                    },
+                    prefixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        // _search();
+                        setState(() {});
+                      },
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        if (_searchController.text.isNotEmpty) {
+                          _searchController.clear();
+                          _search();
+                        }
+                      },
+                    ),
                   ),
+                  onSubmitted: (value) {
+                    // _search();
+                    setState(() {});
+                  },
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Scrollbar(
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Scrollbar(
+                    controller: _verticalController,
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
                       controller: _verticalController,
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        controller: _verticalController,
-                        scrollDirection: Axis.vertical,
-                        child: Scrollbar(
+                      scrollDirection: Axis.vertical,
+                      child: Scrollbar(
+                        controller: _horizontalController,
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
                           controller: _horizontalController,
-                          thumbVisibility: true,
-                          child: SingleChildScrollView(
-                            controller: _horizontalController,
-                            scrollDirection: Axis.horizontal,
-                            child: _buildDataTable(snapshot.data!),
-                          ),
+                          scrollDirection: Axis.horizontal,
+                          child: _buildDataTable(snapshot.data!),
                         ),
                       ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Visibility(
-                        visible: _currentPage > 1,
-                        child: TextButton(
-                          onPressed: _handlePreviousPage,
-                          child: const Text(Strings.previous),
-                        ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Visibility(
+                      visible: _currentPage > 1,
+                      child: TextButton(
+                        onPressed: _handlePreviousPage,
+                        child: const Text(Strings.previous),
                       ),
-                      const SizedBox(width: 10.0),
-                      Text('${Strings.page} $_currentPage'),
-                      const SizedBox(width: 10.0),
-                      Visibility(
-                        visible: snapshot.data!.docs.length == _pageSize,
-                        child: TextButton(
-                          onPressed: _handleNextPage,
-                          child: const Text(Strings.next),
-                        ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    Text('${Strings.page} $_currentPage'),
+                    const SizedBox(width: 10.0),
+                    Visibility(
+                      visible: snapshot.data!.docs.length == _pageSize,
+                      child: TextButton(
+                        onPressed: _handleNextPage,
+                        child: const Text(Strings.next),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
