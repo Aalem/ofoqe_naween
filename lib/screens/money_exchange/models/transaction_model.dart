@@ -1,4 +1,3 @@
-
 import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
 
 class TransactionModel {
@@ -9,6 +8,7 @@ class TransactionModel {
   final String description;
   final double debit;
   final double credit;
+  final String exchangeId;
 
   TransactionModel({
     required this.id,
@@ -18,6 +18,7 @@ class TransactionModel {
     required this.description,
     required this.debit,
     required this.credit,
+    required this.exchangeId,
   });
 
   factory TransactionModel.fromMap(Map<String, dynamic> data, String id) {
@@ -29,6 +30,7 @@ class TransactionModel {
       description: data['description'],
       debit: data['debit'].toDouble(),
       credit: data['credit'].toDouble(),
+      exchangeId: data['exchange_id']
     );
   }
 
@@ -40,6 +42,8 @@ class TransactionModel {
       'description': description,
       'debit': debit,
       'credit': credit,
+      'exchange_id': exchangeId,
     };
   }
 }
+

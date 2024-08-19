@@ -1,5 +1,7 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:ofoqe_naween/screens/money_exchange/models/exchange_model.dart';
+import 'package:ofoqe_naween/screens/money_exchange/services/exchange_service.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
@@ -50,6 +52,9 @@ class _AddTransactionState extends State<AddTransaction> {
   Jalali? _selectedDate;
   TransactionModel? _transaction;
 
+  List<ExchangeModel> _exchanges = [];
+  ExchangeModel? _selectedExchange;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +80,16 @@ class _AddTransactionState extends State<AddTransaction> {
       _initialGregorianDate = _gregorianDateTextController.text;
     }
     _fetchCurrentBalance();
+    _fetchExchanges();
+  }
+
+  Future<void> _fetchExchanges() async {
+    try {
+      _exchanges = await ExchangeService().getExchanges();
+      setState(() {});
+    } catch (e) {
+      print('Error fetching exchanges: $e');
+    }
   }
 
   Future<void> _fetchCurrentBalance() async {
@@ -145,6 +160,29 @@ class _AddTransactionState extends State<AddTransaction> {
         _gregorianDateTextController.text != _initialGregorianDate;
   }
 
+  Widget buildExchangeSelection() {
+    return DropdownButtonFormField<ExchangeModel>(
+      value: _selectedExchange,
+      decoration: InputDecoration(
+        labelText: Strings.selectExchange,
+        border: OutlineInputBorder(),
+      ),
+      onChanged: (ExchangeModel? newValue) {
+        setState(() {
+          _selectedExchange = newValue;
+        });
+      },
+      items: _exchanges.map((ExchangeModel exchange) {
+        return DropdownMenuItem<ExchangeModel>(
+          value: exchange,
+          child: Text(exchange.name), // Adjust according to your `Exchange` class
+        );
+      }).toList(),
+      validator: (value) => value == null ? Strings.selectExchange : null,
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<BalanceProvider>(
@@ -162,6 +200,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     buildDateFields(),
+                    buildExchangeSelection(),
                     CustomTextFormField(
                       controller: _descriptionTextController,
                       label: Strings.description,
@@ -470,6 +509,7 @@ class _AddTransactionState extends State<AddTransaction> {
         debit: _selectedPaymentType == MEPaymentType.debit ? _amount : 0,
         credit: _selectedPaymentType == MEPaymentType.credit ? _amount : 0,
         id: widget.id ?? '',
+        exchangeId: _selectedExchange?.id ?? '',
       );
 
       if (widget.transactionModel == null) {

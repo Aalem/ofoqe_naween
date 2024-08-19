@@ -9,8 +9,6 @@ import 'package:ofoqe_naween/screens/money_exchange/pages/add_exchange.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/utilities/date_time_utils.dart';
-import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -59,9 +57,9 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
 
     // Filter by description if search query is provided
     if (_searchController.text.isNotEmpty) {
-      query = query.where(ExchangesFields.name,
+      query = query.where(ExchangeFields.name,
           isGreaterThanOrEqualTo: _searchController.text)
-          .where(ExchangesFields.name,
+          .where(ExchangeFields.name,
           isLessThanOrEqualTo: _searchController.text + '\uf8ff');
     }
 
@@ -174,14 +172,14 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                           constraints: const BoxConstraints(maxWidth: 30),
                           child: Text(number.toString()))),
                       DataCell(Text(
-                          exchangeEntry[ExchangesFields.name] ??
+                          exchangeEntry[ExchangeFields.name] ??
                               '')),
                       DataCell(Text(
-                          exchangeEntry[ExchangesFields.address] ??
+                          exchangeEntry[ExchangeFields.address] ??
                               '')),
                       DataCell(Text(
                           textDirection: TextDirection.ltr,
-                          '${exchangeEntry[ExchangesFields.phone1]}\n${exchangeEntry[ExchangesFields.phone2]}'.trim())),
+                          '${exchangeEntry[ExchangeFields.phone1]}\n${exchangeEntry[ExchangeFields.phone2]}'.trim())),
                       DataCell(
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),

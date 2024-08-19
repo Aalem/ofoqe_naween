@@ -142,6 +142,22 @@ class _TransactionsPageState extends State<TransactionsPage> {
     });
   }
 
+  Future<Map<String, String>> _fetchExchangeNames(List<String> exchangeIds) async {
+    Map<String, String> exchangeNames = {};
+    if (exchangeIds.isEmpty) return exchangeNames;
+
+    final exchangeCollection = _firestore.collection(CollectionNames.exchanges);
+    final exchangeDocs = await exchangeCollection
+        .where(FieldPath.documentId, whereIn: exchangeIds)
+        .get();
+
+    for (var doc in exchangeDocs.docs) {
+      exchangeNames[doc.id] = doc.data()[ExchangeFields.name] ?? '';
+    }
+
+    return exchangeNames;
+  }
+
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
     int number = (_currentPage - 1) * _pageSize;
     if (snapshot.docs.isNotEmpty) {
@@ -168,122 +184,149 @@ class _TransactionsPageState extends State<TransactionsPage> {
       }
 
       if (filteredDocs.isNotEmpty) {
-        return Column(
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(5.0),
-              ),
-              child: DataTable(
-                border: TableBorder.all(
-                  width: 0.1,
-                  color: Colors.grey,
-                  style: BorderStyle.solid,
-                ),
-                headingTextStyle: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                headingRowColor: WidgetStateColor.resolveWith(
-                        (states) => Theme.of(context).highlightColor),
-                columns: const [
-                  DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.jalaliDate)),
-                  DataColumn(label: Text(Strings.gregorianDate)),
-                  DataColumn(label: Text(Strings.description)),
-                  DataColumn(label: Text(Strings.debit)),
-                  DataColumn(label: Text(Strings.credit)),
-                  DataColumn(label: Text(Strings.edit)),
-                  DataColumn(label: Text(Strings.delete)),
-                ],
-                rows: filteredDocs.map((entry) {
-                  final transactionEntry = entry.data();
-                  number++;
-                  return DataRow(
-                    cells: [
-                      DataCell(ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 30),
-                          child: Text(number.toString()))),
-                      DataCell(Text(
-                        Jalali.fromDateTime(transactionEntry[
-                        MoneyExchangeFields.gregorianDate]
-                            .toDate())
-                            .formatCompactDate()
-                            .toString(),
-                      )),
-                      DataCell(Text(
-                        GeneralFormatter.formatDate(
-                            transactionEntry[MoneyExchangeFields.gregorianDate]
-                                .toDate()),
-                      )),
-                      DataCell(Text(
-                          transactionEntry[MoneyExchangeFields.description] ??
-                              '')),
-                      DataCell(Text(
-                          GeneralFormatter.formatAndRemoveTrailingZeros(
-                              transactionEntry[MoneyExchangeFields.debit]))),
-                      DataCell(Text(
-                          GeneralFormatter.formatAndRemoveTrailingZeros(
-                              transactionEntry[MoneyExchangeFields.credit]))),
-                      DataCell(
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text(Strings.editTransaction),
-                                  content: AddTransaction(
-                                      transactionModel:
-                                      TransactionModel.fromMap(
-                                          transactionEntry, entry.id),
-                                      id: entry.id),
+        // Collect exchange IDs from transactions
+        List<String> exchangeIds = filteredDocs
+            .map((doc) => doc.data()[MoneyExchangeFields.exchangeId])
+            .where((id) => id != null)
+            .cast<String>()
+            .toList();
+
+        // Fetch exchange names asynchronously
+        return FutureBuilder<Map<String, String>>(
+          future: _fetchExchangeNames(exchangeIds),
+          builder: (context, exchangeSnapshot) {
+            if (exchangeSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (exchangeSnapshot.hasError) {
+              return Center(child: Text('Error: ${exchangeSnapshot.error}'));
+            }
+
+            Map<String, String> exchangeNames = exchangeSnapshot.data ?? {};
+
+            return Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  child: DataTable(
+                    border: TableBorder.all(
+                      width: 0.1,
+                      color: Colors.grey,
+                      style: BorderStyle.solid,
+                    ),
+                    headingTextStyle: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    headingRowColor: WidgetStateColor.resolveWith(
+                            (states) => Theme.of(context).highlightColor),
+                    columns: const [
+                      DataColumn(label: Text(Strings.number)),
+                      DataColumn(label: Text(Strings.jalaliDate)),
+                      DataColumn(label: Text(Strings.gregorianDate)),
+                      DataColumn(label: Text(Strings.moneyExchange)),
+                      DataColumn(label: Text(Strings.description)),
+                      DataColumn(label: Text(Strings.debit)),
+                      DataColumn(label: Text(Strings.credit)),
+                      DataColumn(label: Text(Strings.edit)),
+                      DataColumn(label: Text(Strings.delete)),
+                    ],
+                    rows: filteredDocs.map((entry) {
+                      final transactionEntry = entry.data();
+                      number++;
+                      String exchangeName = exchangeNames[transactionEntry[MoneyExchangeFields.exchangeId]] ?? '-';
+
+                      return DataRow(
+                        cells: [
+                          DataCell(ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 30),
+                              child: Text(number.toString()))),
+                          DataCell(Text(
+                            Jalali.fromDateTime(transactionEntry[
+                            MoneyExchangeFields.gregorianDate]
+                                .toDate())
+                                .formatCompactDate()
+                                .toString(),
+                          )),
+                          DataCell(Text(
+                            GeneralFormatter.formatDate(
+                                transactionEntry[MoneyExchangeFields.gregorianDate]
+                                    .toDate()),
+                          )),
+                          DataCell(Text(exchangeName)),
+                          DataCell(Text(
+                              transactionEntry[MoneyExchangeFields.description] ??
+                                  '')),
+                          DataCell(Text(
+                              GeneralFormatter.formatAndRemoveTrailingZeros(
+                                  transactionEntry[MoneyExchangeFields.debit]))),
+                          DataCell(Text(
+                              GeneralFormatter.formatAndRemoveTrailingZeros(
+                                  transactionEntry[MoneyExchangeFields.credit]))),
+                          DataCell(
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text(Strings.editTransaction),
+                                      content: AddTransaction(
+                                          transactionModel:
+                                          TransactionModel.fromMap(
+                                              transactionEntry, entry.id),
+                                          id: entry.id),
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
-                        ),
-                      ),
-                      DataCell(IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ConfirmationDialog(
-                                title: Strings.deleteTransaction +
-                                    transactionEntry[
-                                    MoneyExchangeFields.description],
-                                message: Strings.deleteTransactionMessage,
-                                onConfirm: () async {
-                                  try {
-                                    await MoneyExchangeService
-                                        .deleteTransaction(entry.id);
-                                    Navigator.of(context).pop();
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(Strings
-                                            .failedToDeletingTransaction),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
+                            ),
+                          ),
+                          DataCell(IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ConfirmationDialog(
+                                    title: Strings.deleteTransaction +
+                                        transactionEntry[
+                                        MoneyExchangeFields.description],
+                                    message: Strings.deleteTransactionMessage,
+                                    onConfirm: () async {
+                                      try {
+                                        await MoneyExchangeService
+                                            .deleteTransaction(entry.id);
+                                        Navigator.of(context).pop();
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(Strings
+                                                .failedToDeletingTransaction),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
                                 },
                               );
                             },
-                          );
-                        },
-                      )),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
+                          )),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       } else {
         return NothingFound();

@@ -5,12 +5,12 @@ import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_serv
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class MoneyExchange extends StatefulWidget {
+class MoneyExchangeHome extends StatefulWidget {
   @override
-  _MoneyExchangeState createState() => _MoneyExchangeState();
+  _MoneyExchangeHomeState createState() => _MoneyExchangeHomeState();
 }
 
-class _MoneyExchangeState extends State<MoneyExchange> {
+class _MoneyExchangeHomeState extends State<MoneyExchangeHome> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(

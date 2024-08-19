@@ -138,4 +138,5 @@ class Strings{
   static const String deleteExchange = 'حذف صرافی:';
   static const String exchangeName = 'نام صرافی';
   static const String searchByExchangeName = 'جستجوی نام صرافی';
+  static const String selectExchange = 'انتخاب صرافی';
 }
