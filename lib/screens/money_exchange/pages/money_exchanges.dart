@@ -1,21 +1,16 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/components/nothing_found.dart';
-import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
-import 'package:ofoqe_naween/screens/money_exchange/pages/add_transaction.dart';
+import 'package:ofoqe_naween/screens/money_exchange/models/exchange_model.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/add_exchange.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
-import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
 import 'package:ofoqe_naween/utilities/date_time_utils.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
-import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -32,11 +27,10 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   final TextEditingController _specificDateController = TextEditingController();
   final ScrollController _verticalScrollController = ScrollController();
   final ScrollController _horizontalScrollController = ScrollController();
-  bool _showFilters = false;
   bool _isDebitChecked = false;
   bool _isCreditChecked = false;
   int _currentPage = 1;
-  Stream<QuerySnapshot<Map<String, dynamic>>>? _transactionStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _exchangeStream;
   late DocumentSnapshot lastRecordedDocumentId;
 
   JalaliRange? _selectedDateRange;
@@ -44,7 +38,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   @override
   void initState() {
     super.initState();
-    _transactionStream = _getTransactions();
+    _exchangeStream = _getExchanges();
   }
 
   @override
@@ -57,43 +51,18 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
     super.dispose();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions({
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getExchanges({
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query =
-    _firestore.collection(CollectionNames.moneyExchange);
+    _firestore.collection(CollectionNames.exchanges);
 
-    // Apply date filtering (specific or range)
-    if (_specificDateController.text.isNotEmpty) {
-      Jalali jalaliDate =
-      DateTimeUtils.stringToJalaliDate(_specificDateController.text);
-      DateTime specificDate = jalaliDate.toDateTime();
-
-      query = query.where(MoneyExchangeFields.gregorianDate,
-          isEqualTo: specificDate);
-    } else if (_selectedDateRange != null) {
-      query = query
-          .where(MoneyExchangeFields.gregorianDate,
-          isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
-          .where(MoneyExchangeFields.gregorianDate,
-          isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
-    }
-
-    // Filter by debit/credit if a checkbox is selected, unless both are checked
-    if (!(_isDebitChecked && _isCreditChecked)) {
-      if (_isDebitChecked) {
-        query = query.where(MoneyExchangeFields.debit, isGreaterThan: 0);
-      } else if (_isCreditChecked) {
-        query = query.where(MoneyExchangeFields.credit, isGreaterThan: 0);
-      }
-    }
-
-    // Now that filtering is complete, order by date (if needed)
-    if (_specificDateController.text.isEmpty &&
-        _selectedDateRange == null &&
-        !(_isDebitChecked || _isCreditChecked)) {
-      // Only order by date if no other filtering is applied
-      // query = query.orderBy('date', descending: true);
+    // Filter by description if search query is provided
+    if (_searchController.text.isNotEmpty) {
+      query = query.where(ExchangesFields.name,
+          isGreaterThanOrEqualTo: _searchController.text)
+          .where(ExchangesFields.name,
+          isLessThanOrEqualTo: _searchController.text + '\uf8ff');
     }
 
     // Pagination logic (unchanged)
@@ -109,7 +78,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   void _handleNextPage() {
     setState(() {
       _currentPage++;
-      _transactionStream = _getTransactions();
+      _exchangeStream = _getExchanges();
     });
   }
 
@@ -117,7 +86,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
     if (_currentPage > 1) {
       setState(() {
         _currentPage--;
-        _transactionStream = _getTransactions();
+        _exchangeStream = _getExchanges();
       });
     }
   }
@@ -125,7 +94,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   void _search() {
     _currentPage = 1;
     setState(() {
-      _transactionStream = _getTransactions(isSearching: false);
+      _exchangeStream = _getExchanges(isSearching: false);
     });
   }
 
@@ -138,7 +107,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
       _isCreditChecked = false;
       _selectedDateRange = null;
       _currentPage = 1;
-      _transactionStream = _getTransactions(isSearching: false);
+      _exchangeStream = _getExchanges(isSearching: false);
     });
   }
 
@@ -190,16 +159,14 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                         (states) => Theme.of(context).highlightColor),
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.jalaliDate)),
-                  DataColumn(label: Text(Strings.gregorianDate)),
-                  DataColumn(label: Text(Strings.description)),
-                  DataColumn(label: Text(Strings.debit)),
-                  DataColumn(label: Text(Strings.credit)),
+                  DataColumn(label: Text(Strings.exchangeName)),
+                  DataColumn(label: Text(Strings.address)),
+                  DataColumn(label: Text(Strings.phoneNumbers)),
                   DataColumn(label: Text(Strings.edit)),
                   DataColumn(label: Text(Strings.delete)),
                 ],
                 rows: filteredDocs.map((entry) {
-                  final transactionEntry = entry.data();
+                  final exchangeEntry = entry.data();
                   number++;
                   return DataRow(
                     cells: [
@@ -207,26 +174,14 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                           constraints: const BoxConstraints(maxWidth: 30),
                           child: Text(number.toString()))),
                       DataCell(Text(
-                        Jalali.fromDateTime(transactionEntry[
-                        MoneyExchangeFields.gregorianDate]
-                            .toDate())
-                            .formatCompactDate()
-                            .toString(),
-                      )),
-                      DataCell(Text(
-                        GeneralFormatter.formatDate(
-                            transactionEntry[MoneyExchangeFields.gregorianDate]
-                                .toDate()),
-                      )),
-                      DataCell(Text(
-                          transactionEntry[MoneyExchangeFields.description] ??
+                          exchangeEntry[ExchangesFields.name] ??
                               '')),
                       DataCell(Text(
-                          GeneralFormatter.formatAndRemoveTrailingZeros(
-                              transactionEntry[MoneyExchangeFields.debit]))),
+                          exchangeEntry[ExchangesFields.address] ??
+                              '')),
                       DataCell(Text(
-                          GeneralFormatter.formatAndRemoveTrailingZeros(
-                              transactionEntry[MoneyExchangeFields.credit]))),
+                          textDirection: TextDirection.ltr,
+                          '${exchangeEntry[ExchangesFields.phone1]}\n${exchangeEntry[ExchangesFields.phone2]}'.trim())),
                       DataCell(
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
@@ -235,11 +190,11 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title: const Text(Strings.editTransaction),
-                                  content: AddTransaction(
-                                      transactionModel:
-                                      TransactionModel.fromMap(
-                                          transactionEntry, entry.id),
+                                  title: const Text(Strings.editExchange),
+                                  content: AddExchange(
+                                      exchangeModel:
+                                      ExchangeModel.fromFirestore(
+                                          exchangeEntry, entry.id),
                                       id: entry.id),
                                 );
                               },
@@ -254,8 +209,8 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                             context: context,
                             builder: (BuildContext context) {
                               return ConfirmationDialog(
-                                title: Strings.deleteTransaction +
-                                    transactionEntry[
+                                title: Strings.deleteExchange +
+                                    exchangeEntry[
                                     MoneyExchangeFields.description],
                                 message: Strings.deleteTransactionMessage,
                                 onConfirm: () async {
@@ -293,28 +248,6 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
     }
   }
 
-  Future<void> _pickDateRange(BuildContext context) async {
-    Jalali currentDate = Jalali.now();
-    final JalaliRange? picker = await showDariDateRangePicker(
-      context: context,
-      initialDateRange: JalaliRange(
-        start: Jalali.fromDateTime(
-            DateTime.now().subtract(const Duration(days: 4))),
-        end: currentDate,
-      ),
-      firstDate: Jalali(currentDate.year - 10),
-      lastDate: currentDate,
-    );
-
-    if (picker != null) {
-      _selectedDateRange = picker;
-      _dateRangeController.text =
-      '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
-      _specificDateController.clear();
-    }
-    _search();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -323,9 +256,9 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
+              return const AlertDialog(
                 title: Text(Strings.addExchange),
-                content: AddTransaction(),
+                content: AddExchange(),
               );
             },
           );
@@ -333,7 +266,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
         child: const Icon(Icons.add),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _transactionStream,
+        stream: _exchangeStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
@@ -356,7 +289,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: Strings.searchByDescription,
+                          hintText: Strings.searchByExchangeName,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
@@ -383,136 +316,9 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
                         },
                       ),
                     ),
-                    ButtonIcon(
-                        icon: Icons.filter_list,
-                        onPressed: () {
-                          setState(() {
-                            if (ScreenSize.isPhone(context)) {
-                              showDialog(
-                                  builder: (context) {
-                                    return _buildFilterDialog(context);
-                                  },
-                                  context: context);
-                            } else {
-                              _showFilters = !_showFilters;
-                              if (!_showFilters) {
-                                _clearFilters();
-                              }
-                            }
-                          });
-                        }),
                   ],
                 ),
               ),
-              // if (_showFilters) const SizedBox(height: 10),
-              if (_showFilters && ScreenSize.getWidth(context) >= 1200)
-                Container(
-                  color: AppColors.appBarBG,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: CustomTextFormField(
-                          label: Strings.dateRange,
-                          controller: _dateRangeController,
-                          readOnly: true,
-                          onTap: () async {
-                            await _pickDateRange(context);
-                          },
-                          displaySuffix: false,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: CustomTextFormField(
-                          label: Strings.date,
-                          displaySuffix: false,
-                          controller: _specificDateController,
-                          readOnly: true,
-                          onTap: () async {
-                            final Jalali? picked = await showDariDatePicker(
-                              context: context,
-                              initialDate: Jalali.now(),
-                              firstDate: Jalali(1385, 8),
-                              lastDate: Jalali(1450, 9),
-                              initialEntryMode:
-                              DDatePickerEntryMode.calendarOnly,
-                              initialDatePickerMode: DDatePickerMode.day,
-                              builder: (context, child) {
-                                return Theme(
-                                  data: ThemeData(
-                                    dialogTheme: const DialogTheme(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(0)),
-                                      ),
-                                    ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) {
-                              _dateRangeController.clear();
-                              _specificDateController.text =
-                                  picked.formatCompactDate();
-                              _search();
-                            }
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isDebitChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isDebitChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.debit),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isCreditChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isCreditChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.credit),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              onPressed: _search,
-                              icon: const Icon(Icons.search),
-                            ),
-                            IconButton(
-                              onPressed: _clearFilters,
-                              icon: const Icon(Icons.clear),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               Expanded(
                 child: Align(
                   alignment: Alignment.topCenter,
@@ -566,102 +372,6 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildFilterDialog(BuildContext context) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return AlertDialog(
-          title: const Text(Strings.filter),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                CustomTextFormField(
-                  label: Strings.date,
-                  controller: _specificDateController,
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    var pickedDate = await showDariDatePicker(
-                      context: context,
-                      initialDate: Jalali.now(),
-                      firstDate: Jalali(1385, 8),
-                      lastDate: Jalali.now(),
-                    );
-                    if (pickedDate != null) {
-                      _specificDateController.text =
-                          pickedDate.formatCompactDate();
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                CustomTextFormField(
-                  label: Strings.dateRange,
-                  controller: _dateRangeController,
-                  onTap: () async {
-                    FocusScope.of(context).requestFocus(FocusNode());
-                    var pickedDateRange = await showDariDateRangePicker(
-                      context: context,
-                      initialDateRange: JalaliRange(
-                        start: Jalali.now().withDay(1),
-                        end: Jalali.now(),
-                      ),
-                      firstDate: Jalali(1385, 8),
-                      lastDate: Jalali.now(),
-                    );
-                    if (pickedDateRange != null) {
-                      _selectedDateRange = pickedDateRange;
-                      _dateRangeController.text =
-                      "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _isDebitChecked,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _isDebitChecked = value!;
-                        });
-                      },
-                    ),
-                    const Text(Strings.debit),
-                    const SizedBox(width: 10),
-                    Checkbox(
-                      value: _isCreditChecked,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          _isCreditChecked = value!;
-                        });
-                      },
-                    ),
-                    const Text(Strings.credit),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            DialogButton(
-              title: Strings.filter,
-              buttonType: ButtonType.positive,
-              onPressed: () {
-                _search();
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _clearFilters();
-                Navigator.of(context).pop();
-              },
-              child: const Text(Strings.clearFilter),
-            ),
-          ],
-        );
-      },
     );
   }
 }

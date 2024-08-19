@@ -120,7 +120,7 @@ class _CustomersPageState extends State<CustomersPage> {
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
                   DataColumn(label: Text(Strings.company)),
-                  DataColumn(label: Text(Strings.name)),
+                  DataColumn(label: Text(Strings.custoerName)),
                   DataColumn(label: Text(Strings.phoneNumbers)),
                   DataColumn(label: Text(Strings.address)),
                   DataColumn(label: Text(Strings.edit)),

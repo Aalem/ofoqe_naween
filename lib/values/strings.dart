@@ -53,7 +53,7 @@ class Strings{
   // Customers
   static const String addCustomerTitle = 'اضافه نمودن مشتری جدید';
   static const String editCustomerTitle = 'ویرایش مشتری';
-  static const String name = 'اسم مشتری';
+  static const String custoerName = 'اسم مشتری';
   static const String company = 'شرکت';
   static const String number = 'شماره';
   static const String enterName = 'لطفاً یک نام وارد کنید!';
@@ -129,4 +129,13 @@ class Strings{
   // Money Exchanges
   static const String moneyExchanges = 'صرافی ها';
   static const String addExchange = 'اضافه کردن صرافی';
+  static const String editExchange = 'ویرایش صرافی';
+  static const String enterValidPhone = 'لطفاً شماره را درست وارد کنید!';
+  static const String exchangeAddedSuccessfully = 'صرافی موفقانه ثبت گردید';
+  static const String exchangeUpdatedSuccessfully = 'صرافی موفقانه ویرایش گردید';
+  static const String errorAddingExchange = 'در ثبت صرافی مشکلی پیش آمد!';
+  static const String errorUpdatingExchange = 'در ویرایش صرافی مشکلی پیش آمد!';
+  static const String deleteExchange = 'حذف صرافی:';
+  static const String exchangeName = 'نام صرافی';
+  static const String searchByExchangeName = 'جستجوی نام صرافی';
 }

@@ -65,7 +65,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _customer.name),
-                  label: Strings.name,
+                  label: Strings.custoerName,
                   validationMessage: Strings.enterName,
                   onSaved: (value) => _customer.name = value!,
                 ),
