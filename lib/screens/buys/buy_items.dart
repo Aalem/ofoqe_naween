@@ -471,7 +471,8 @@ class _AddTransactionState extends State<AddTransaction> {
         credit: _selectedPaymentType == MEPaymentType.credit ? _amount : 0,
         id: widget.id ?? '',
         //TODO: fix exchange ID ?
-        exchangeId: ''
+        exchangeId: '',
+        exchangeName: ''
       );
 
       if (widget.transactionModel == null) {

@@ -9,6 +9,7 @@ class TransactionModel {
   final double debit;
   final double credit;
   final String exchangeId;
+  final String exchangeName;
 
   TransactionModel({
     required this.id,
@@ -19,6 +20,7 @@ class TransactionModel {
     required this.debit,
     required this.credit,
     required this.exchangeId,
+    required this.exchangeName,
   });
 
   factory TransactionModel.fromMap(Map<String, dynamic> data, String id) {
@@ -30,7 +32,8 @@ class TransactionModel {
       description: data['description'],
       debit: data['debit'].toDouble(),
       credit: data['credit'].toDouble(),
-      exchangeId: data['exchange_id']
+      exchangeId: data['exchange_id'],
+      exchangeName: data['exchange_name']
     );
   }
 
@@ -43,6 +46,7 @@ class TransactionModel {
       'debit': debit,
       'credit': credit,
       'exchange_id': exchangeId,
+      'exchange_name': exchangeName,
     };
   }
 }

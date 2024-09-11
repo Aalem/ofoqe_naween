@@ -60,43 +60,30 @@ class _TransactionsPageState extends State<TransactionsPage> {
   Stream<QuerySnapshot<Map<String, dynamic>>> _getTransactions({
     bool isSearching = false,
   }) {
-    Query<Map<String, dynamic>> query =
-    _firestore.collection(CollectionNames.moneyExchange);
+    Query<Map<String, dynamic>> query = _firestore.collection(CollectionNames.moneyExchange);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
-      Jalali jalaliDate =
-      DateTimeUtils.stringToJalaliDate(_specificDateController.text);
+      Jalali jalaliDate = DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
-
-      query = query.where(MoneyExchangeFields.gregorianDate,
-          isEqualTo: specificDate);
+      query = query.where(MoneyExchangeFields.gregorianDate, isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
-          .where(MoneyExchangeFields.gregorianDate,
-          isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
-          .where(MoneyExchangeFields.gregorianDate,
-          isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
+          .where(MoneyExchangeFields.gregorianDate, isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
+          .where(MoneyExchangeFields.gregorianDate, isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
-    // Filter by debit/credit if a checkbox is selected, unless both are checked
-    if (!(_isDebitChecked && _isCreditChecked)) {
+    // Apply debit/credit filters
+    if (_isDebitChecked || _isCreditChecked) {
       if (_isDebitChecked) {
         query = query.where(MoneyExchangeFields.debit, isGreaterThan: 0);
-      } else if (_isCreditChecked) {
+      }
+      if (_isCreditChecked) {
         query = query.where(MoneyExchangeFields.credit, isGreaterThan: 0);
       }
     }
 
-    // Now that filtering is complete, order by date (if needed)
-    if (_specificDateController.text.isEmpty &&
-        _selectedDateRange == null &&
-        !(_isDebitChecked || _isCreditChecked)) {
-      // Only order by date if no other filtering is applied
-      // query = query.orderBy('date', descending: true);
-    }
-
-    // Pagination logic (unchanged)
+    // Pagination logic
     if (_currentPage > 1) {
       query = query.startAfterDocument(lastRecordedDocumentId);
     }
@@ -142,198 +129,159 @@ class _TransactionsPageState extends State<TransactionsPage> {
     });
   }
 
-  Future<Map<String, String>> _fetchExchangeNames(List<String> exchangeIds) async {
-    Map<String, String> exchangeNames = {};
-    if (exchangeIds.isEmpty) return exchangeNames;
-
-    final exchangeCollection = _firestore.collection(CollectionNames.exchanges);
-    final exchangeDocs = await exchangeCollection
-        .where(FieldPath.documentId, whereIn: exchangeIds)
-        .get();
-
-    for (var doc in exchangeDocs.docs) {
-      exchangeNames[doc.id] = doc.data()[ExchangeFields.name] ?? '';
-    }
-
-    return exchangeNames;
-  }
-
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
     int number = (_currentPage - 1) * _pageSize;
-    if (snapshot.docs.isNotEmpty) {
-      lastRecordedDocumentId = snapshot.docs.last;
 
-      var filteredDocs = snapshot.docs;
-      if ((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc.data()[MoneyExchangeFields.debit] > 0;
-        }).toList();
-      }
-      if (_searchController.text.isNotEmpty) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc
-              .data()[MoneyExchangeFields.description]
-              .contains(_searchController.text);
-        }).toList();
-      }
-      if (_specificDateController.text.isEmpty &&
-          _selectedDateRange == null &&
-          !(_isDebitChecked || _isCreditChecked)) {
-        filteredDocs.sort((a, b) =>
-            b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
-      }
-
-      if (filteredDocs.isNotEmpty) {
-        // Collect exchange IDs from transactions
-        List<String> exchangeIds = filteredDocs
-            .map((doc) => doc.data()[MoneyExchangeFields.exchangeId])
-            .where((id) => id != null)
-            .cast<String>()
-            .toList();
-
-        // Fetch exchange names asynchronously
-        return FutureBuilder<Map<String, String>>(
-          future: _fetchExchangeNames(exchangeIds),
-          builder: (context, exchangeSnapshot) {
-            if (exchangeSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (exchangeSnapshot.hasError) {
-              return Center(child: Text('Error: ${exchangeSnapshot.error}'));
-            }
-
-            Map<String, String> exchangeNames = exchangeSnapshot.data ?? {};
-
-            return Column(
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  child: DataTable(
-                    border: TableBorder.all(
-                      width: 0.1,
-                      color: Colors.grey,
-                      style: BorderStyle.solid,
-                    ),
-                    headingTextStyle: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                    headingRowColor: WidgetStateColor.resolveWith(
-                            (states) => Theme.of(context).highlightColor),
-                    columns: const [
-                      DataColumn(label: Text(Strings.number)),
-                      DataColumn(label: Text(Strings.jalaliDate)),
-                      DataColumn(label: Text(Strings.gregorianDate)),
-                      DataColumn(label: Text(Strings.moneyExchange)),
-                      DataColumn(label: Text(Strings.description)),
-                      DataColumn(label: Text(Strings.debit)),
-                      DataColumn(label: Text(Strings.credit)),
-                      DataColumn(label: Text(Strings.edit)),
-                      DataColumn(label: Text(Strings.delete)),
-                    ],
-                    rows: filteredDocs.map((entry) {
-                      final transactionEntry = entry.data();
-                      number++;
-                      String exchangeName = exchangeNames[transactionEntry[MoneyExchangeFields.exchangeId]] ?? '-';
-
-                      return DataRow(
-                        cells: [
-                          DataCell(ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 30),
-                              child: Text(number.toString()))),
-                          DataCell(Text(
-                            Jalali.fromDateTime(transactionEntry[
-                            MoneyExchangeFields.gregorianDate]
-                                .toDate())
-                                .formatCompactDate()
-                                .toString(),
-                          )),
-                          DataCell(Text(
-                            GeneralFormatter.formatDate(
-                                transactionEntry[MoneyExchangeFields.gregorianDate]
-                                    .toDate()),
-                          )),
-                          DataCell(Text(exchangeName)),
-                          DataCell(Text(
-                              transactionEntry[MoneyExchangeFields.description] ??
-                                  '')),
-                          DataCell(Text(
-                              GeneralFormatter.formatAndRemoveTrailingZeros(
-                                  transactionEntry[MoneyExchangeFields.debit]))),
-                          DataCell(Text(
-                              GeneralFormatter.formatAndRemoveTrailingZeros(
-                                  transactionEntry[MoneyExchangeFields.credit]))),
-                          DataCell(
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text(Strings.editTransaction),
-                                      content: AddTransaction(
-                                          transactionModel:
-                                          TransactionModel.fromMap(
-                                              transactionEntry, entry.id),
-                                          id: entry.id),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                          DataCell(IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return ConfirmationDialog(
-                                    title: Strings.deleteTransaction +
-                                        transactionEntry[
-                                        MoneyExchangeFields.description],
-                                    message: Strings.deleteTransactionMessage,
-                                    onConfirm: () async {
-                                      try {
-                                        await MoneyExchangeService
-                                            .deleteTransaction(entry.id);
-                                        Navigator.of(context).pop();
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(Strings
-                                                .failedToDeletingTransaction),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          )),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        return NothingFound();
-      }
-    } else {
+    if (snapshot.docs.isEmpty) {
       return NoDataExists();
     }
+
+    lastRecordedDocumentId = snapshot.docs.last;
+    var filteredDocs = snapshot.docs;
+
+    // Apply debit/credit filters
+    if (_isDebitChecked || _isCreditChecked) {
+      filteredDocs = filteredDocs.where((doc) {
+        final data = doc.data();
+        final isDebit = _isDebitChecked && (data[MoneyExchangeFields.debit] ?? 0) > 0;
+        final isCredit = _isCreditChecked && (data[MoneyExchangeFields.credit] ?? 0) > 0;
+        return isDebit || isCredit;
+      }).toList();
+    }
+
+    // Apply search filter
+    if (_searchController.text.isNotEmpty) {
+      filteredDocs = filteredDocs.where((doc) {
+        return (doc.data()[MoneyExchangeFields.description] ?? '').contains(_searchController.text);
+      }).toList();
+    }
+
+    // Apply date and sorting
+    if (_specificDateController.text.isEmpty &&
+        _selectedDateRange == null &&
+        !(_isDebitChecked || _isCreditChecked)) {
+      filteredDocs.sort((a, b) {
+        final dateA = a.data()[MoneyExchangeFields.date] ?? DateTime.now();
+        final dateB = b.data()[MoneyExchangeFields.date] ?? DateTime.now();
+        return dateB.compareTo(dateA);
+      });
+    }
+
+    if (filteredDocs.isEmpty) {
+      return NothingFound();
+    }
+
+    List<String> exchangeIds = filteredDocs
+        .map((doc) => doc.data()[MoneyExchangeFields.exchangeId])
+        .where((id) => id != null)
+        .cast<String>()
+        .toList();
+
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          child: DataTable(
+            border: TableBorder.all(
+              width: 0.1,
+              color: Colors.grey,
+              style: BorderStyle.solid,
+            ),
+            headingTextStyle: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+            headingRowColor: WidgetStateColor.resolveWith(
+                    (states) => Theme.of(context).highlightColor),
+            columns: const [
+              DataColumn(label: Text(Strings.number)),
+              DataColumn(label: Text(Strings.jalaliDate)),
+              DataColumn(label: Text(Strings.gregorianDate)),
+              DataColumn(label: Text(Strings.moneyExchange)),
+              DataColumn(label: Text(Strings.description)),
+              DataColumn(label: Text(Strings.debit)),
+              DataColumn(label: Text(Strings.credit)),
+              DataColumn(label: Text(Strings.edit)),
+              DataColumn(label: Text(Strings.delete)),
+            ],
+            rows: filteredDocs.map((entry) {
+              final transactionEntry = entry.data();
+              number++;
+              return DataRow(
+                cells: [
+                  DataCell(ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 30),
+                      child: Text(number.toString()))),
+                  DataCell(Text(
+                    Jalali.fromDateTime(transactionEntry[MoneyExchangeFields.gregorianDate].toDate())
+                        .formatCompactDate()
+                        .toString(),
+                  )),
+                  DataCell(Text(
+                    GeneralFormatter.formatDate(transactionEntry[MoneyExchangeFields.gregorianDate].toDate()),
+                  )),
+                  DataCell(Text(transactionEntry[MoneyExchangeFields.exchangeName] ?? '')),
+                  DataCell(Text(transactionEntry[MoneyExchangeFields.description] ?? '')),
+                  DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(transactionEntry[MoneyExchangeFields.debit]))),
+                  DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(transactionEntry[MoneyExchangeFields.credit]))),
+                  DataCell(
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text(Strings.editTransaction),
+                              content: AddTransaction(
+                                  transactionModel: TransactionModel.fromMap(transactionEntry, entry.id),
+                                  id: entry.id),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  DataCell(
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ConfirmationDialog(
+                              title: Strings.deleteTransaction + (transactionEntry[MoneyExchangeFields.description] ?? ''),
+                              message: Strings.deleteTransactionMessage,
+                              onConfirm: () async {
+                                try {
+                                  await MoneyExchangeService.deleteTransaction(entry.id);
+                                  Navigator.of(context).pop();
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(Strings.failedToDeletingTransaction),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -352,7 +300,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     if (picker != null) {
       _selectedDateRange = picker;
       _dateRangeController.text =
-      '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
+          '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
       _specificDateController.clear();
     }
     _search();
@@ -361,6 +309,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -392,7 +341,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               Container(
                 color: AppColors.appBarBG,
                 padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
                     Expanded(
@@ -480,7 +429,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               firstDate: Jalali(1385, 8),
                               lastDate: Jalali(1450, 9),
                               initialEntryMode:
-                              DDatePickerEntryMode.calendarOnly,
+                                  DDatePickerEntryMode.calendarOnly,
                               initialDatePickerMode: DDatePickerMode.day,
                               builder: (context, child) {
                                 return Theme(
@@ -516,6 +465,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   onChanged: (bool? value) {
                                     setState(() {
                                       _isDebitChecked = value!;
+                                      // _search();
                                     });
                                   },
                                 ),
@@ -529,6 +479,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   onChanged: (bool? value) {
                                     setState(() {
                                       _isCreditChecked = value!;
+                                      // _search();
                                     });
                                   },
                                 ),
@@ -655,7 +606,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     if (pickedDateRange != null) {
                       _selectedDateRange = pickedDateRange;
                       _dateRangeController.text =
-                      "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                          "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
                     }
                   },
                 ),
