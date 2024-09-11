@@ -165,7 +165,6 @@ class _AddTransactionState extends State<AddTransaction> {
       value: _selectedExchange,
       decoration: InputDecoration(
         labelText: Strings.selectExchange,
-        border: OutlineInputBorder(),
       ),
       onChanged: (ExchangeModel? newValue) {
         setState(() {

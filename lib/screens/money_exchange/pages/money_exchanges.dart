@@ -1,4 +1,3 @@
-import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
@@ -21,17 +20,12 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _dateRangeController = TextEditingController();
-  final TextEditingController _specificDateController = TextEditingController();
   final ScrollController _verticalScrollController = ScrollController();
   final ScrollController _horizontalScrollController = ScrollController();
-  bool _isDebitChecked = false;
-  bool _isCreditChecked = false;
+
   int _currentPage = 1;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _exchangeStream;
   late DocumentSnapshot lastRecordedDocumentId;
-
-  JalaliRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -42,8 +36,6 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   @override
   void dispose() {
     _searchController.dispose();
-    _dateRangeController.dispose();
-    _specificDateController.dispose();
     _verticalScrollController.dispose();
     _horizontalScrollController.dispose();
     super.dispose();
@@ -99,11 +91,6 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   void _clearFilters({bool keepDescription = false}) {
     setState(() {
       if (!keepDescription) _searchController.clear();
-      _dateRangeController.clear();
-      _specificDateController.clear();
-      _isDebitChecked = false;
-      _isCreditChecked = false;
-      _selectedDateRange = null;
       _currentPage = 1;
       _exchangeStream = _getExchanges(isSearching: false);
     });
@@ -113,26 +100,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
     int number = (_currentPage - 1) * _pageSize;
     if (snapshot.docs.isNotEmpty) {
       lastRecordedDocumentId = snapshot.docs.last;
-
       var filteredDocs = snapshot.docs;
-      if ((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc.data()[MoneyExchangeFields.debit] > 0;
-        }).toList();
-      }
-      if (_searchController.text.isNotEmpty) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc
-              .data()[MoneyExchangeFields.description]
-              .contains(_searchController.text);
-        }).toList();
-      }
-      if (_specificDateController.text.isEmpty &&
-          _selectedDateRange == null &&
-          !(_isDebitChecked || _isCreditChecked)) {
-        filteredDocs.sort((a, b) =>
-            b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
-      }
 
       if (filteredDocs.isNotEmpty) {
         return Column(
