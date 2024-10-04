@@ -217,6 +217,7 @@ class _MoneyExchangesPageState extends State<MoneyExchangesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(

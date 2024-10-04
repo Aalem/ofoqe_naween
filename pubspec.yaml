@@ -44,6 +44,8 @@ dependencies:
   responsive_framework: ^1.4.0
   sidebarx: ^0.17.1
   flutter_svg:
+  flutter_localizations:
+    sdk: flutter
   intl:
   dari_datetime_picker:
     git:

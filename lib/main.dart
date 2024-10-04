@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/firebase_options.dart';
@@ -8,6 +11,8 @@ import 'package:ofoqe_naween/screens/ledger/add_to_ledger.dart';
 import 'package:ofoqe_naween/screens/login_page.dart';
 import 'package:ofoqe_naween/screens/money_exchange/pages/money_exchange_home.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
+import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
+import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -19,9 +24,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-
-
   runApp(const MyApp());
+}
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }
 
 class MyApp extends StatelessWidget {
@@ -32,6 +44,8 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider<NavigationProvider>(
       create: (context) => NavigationProvider(),
       child: MaterialApp(
+        scrollBehavior:
+            ScreenSize.isDesktop(context) ? MyCustomScrollBehavior() : null,
         builder: (context, child) => ResponsiveBreakpoints.builder(
           breakpoints: [
             const Breakpoint(start: 0, end: 450, name: MOBILE),
@@ -39,7 +53,8 @@ class MyApp extends StatelessWidget {
             const Breakpoint(start: 801, end: 1920, name: DESKTOP),
             const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
           ],
-          child: Directionality(textDirection: TextDirection.rtl,child: child!),
+          child:
+              Directionality(textDirection: TextDirection.rtl, child: child!),
         ),
         title: Strings.appName,
         theme: AppTheme(context: context).getTheme(),
@@ -58,5 +73,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

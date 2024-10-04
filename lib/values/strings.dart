@@ -139,4 +139,10 @@ class Strings{
   static const String exchangeName = 'نام صرافی';
   static const String searchByExchangeName = 'جستجوی نام صرافی';
   static const String selectExchange = 'انتخاب صرافی';
+  static const String actions = 'عملیات';
+
+  // Suffixes
+  static const String hijriDateSuffix = 'شـ';
+  static const String gregorianDateSuffix = 'مـ';
+
 }

@@ -11,6 +11,7 @@ class AppTheme {
   ThemeData getTheme() {
     // You can use the context here if needed
     return ThemeData(
+      scaffoldBackgroundColor: Colors.white,
       primaryColor: AppColors.primaryColor,
       appBarTheme: Theme.of(context).appBarTheme.copyWith(
             elevation: 0,
