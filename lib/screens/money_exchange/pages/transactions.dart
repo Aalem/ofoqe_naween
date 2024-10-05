@@ -166,61 +166,53 @@ class _TransactionsPageState extends State<TransactionsPage> {
       }).toList();
     }
     _dataSource = TransactionDataSource(filteredDocs, 0, context);
-
-    print('$_sortColumnIndex');
-    // Apply sorting
-    // _dataSource.sort(
-    //   (doc) =>
-    //       doc.data()?[MoneyExchangeFields.gregorianDate]?.toDate() ??
-    //       DateTime.now(),
-    //   _sortAscending,
-    // );
     // Apply sorting before creating the data source
-    if (filteredDocs.isNotEmpty) {
-      filteredDocs.sort((a, b) {
-        Comparable aValue;
-        Comparable bValue;
+    filteredDocs.sort((a, b) {
+      Comparable aValue;
+      Comparable bValue;
 
-        switch (_sortColumnIndex) {
-          case 1: // No (this case can be omitted if not applicable)
-            // This case can be omitted or modified based on your logic
-            aValue = a.data()?[MoneyExchangeFields.gregorianDate]?.toDate() ??
-                DateTime.now();
-            bValue = b.data()?[MoneyExchangeFields.gregorianDate]?.toDate() ??
-                DateTime.now();
-            break;
-          case 2: // Gregorian Date
-            aValue = a.data()?[MoneyExchangeFields.gregorianDate]?.toDate() ??
-                DateTime.now();
-            bValue = b.data()?[MoneyExchangeFields.gregorianDate]?.toDate() ??
-                DateTime.now();
-            break;
-          case 3: // Exchange Name
-            aValue = a.data()?[MoneyExchangeFields.exchangeName] ?? '';
-            bValue = b.data()?[MoneyExchangeFields.exchangeName] ?? '';
-            break;
-          case 4: // Description
-            aValue = a.data()?[MoneyExchangeFields.description] ?? '';
-            bValue = b.data()?[MoneyExchangeFields.description] ?? '';
-            break;
-          case 5: // Debit
-            aValue = a.data()?[MoneyExchangeFields.debit] ?? 0;
-            bValue = b.data()?[MoneyExchangeFields.debit] ?? 0;
-            break;
-          case 6: // Credit
-            aValue = a.data()?[MoneyExchangeFields.credit] ?? 0;
-            bValue = b.data()?[MoneyExchangeFields.credit] ?? 0;
-            break;
-          default:
-            aValue = '';
-            bValue = '';
-        }
+      switch (_sortColumnIndex) {
+        case 1: // No
+        case 2: // Gregorian Date
+          aValue = a.data()[MoneyExchangeFields.gregorianDate]?.toDate()?.millisecondsSinceEpoch ?? 0;
+          bValue = b.data()[MoneyExchangeFields.gregorianDate]?.toDate()?.millisecondsSinceEpoch ?? 0;
+          break;
+        case 3: // Exchange Name
+          aValue = a.data()[MoneyExchangeFields.exchangeName]?.toString() ?? '';
+          bValue = b.data()[MoneyExchangeFields.exchangeName]?.toString() ?? '';
+          break;
+        case 4: // Debit (double)
+          aValue = (a.data()[MoneyExchangeFields.debit] as num).toDouble() ?? 0.0;
+          bValue = (b.data()[MoneyExchangeFields.debit] as num).toDouble() ?? 0.0;
+          break;
+        case 5: // Credit (double)
+          aValue = (a.data()[MoneyExchangeFields.credit] as num).toDouble() ?? 0.0;
+          bValue = (b.data()[MoneyExchangeFields.credit] as num).toDouble() ?? 0.0;
+          break;
+        default:
+          aValue = ''; // Default empty for strings
+          bValue = '';
+      }
+      // Ignore `0` values in debit and credit fields for sorting
+      if (aValue is num && aValue == 0) {
+        return 1; // Treat `0` as greater to push to the bottom
+      }
+      if (bValue is num && bValue == 0) {
+        return -1; // Treat `0` as greater to push to the bottom
+      }
 
-        return _sortAscending
-            ? Comparable.compare(aValue, bValue)
-            : Comparable.compare(bValue, aValue);
-      });
-    }
+      // Ensure that you are comparing the same type of values (String or num)
+      if (aValue.runtimeType != bValue.runtimeType) {
+        return 0; // Skip sorting when types are different
+      }
+
+
+      return _sortAscending
+          ? Comparable.compare(aValue, bValue)
+          : Comparable.compare(bValue, aValue);
+    });
+
+
 
     if (filteredDocs.isEmpty) {
       return NothingFound();
