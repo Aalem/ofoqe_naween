@@ -59,7 +59,7 @@ class _BuysState extends State<Buys> {
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.moneyExchange);
+        _firestore.collection(CollectionNames.transactions);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {

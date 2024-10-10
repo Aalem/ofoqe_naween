@@ -45,7 +45,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   int _rowsPerPage = 12;
   bool _sortAscending = true;
-  int? _sortColumnIndex;
+  int? _sortColumnIndex = 1;
   late TransactionDataSource _dataSource;
 
   @override
@@ -82,7 +82,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.moneyExchange);
+        _firestore.collection(CollectionNames.transactions);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {

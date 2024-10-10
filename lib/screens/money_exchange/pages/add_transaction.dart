@@ -78,23 +78,32 @@ class _AddTransactionState extends State<AddTransaction> {
       _initialPaymentType = _selectedPaymentType;
       _initialJalaliDate = _jalaliDateTextController.text;
       _initialGregorianDate = _gregorianDateTextController.text;
+      _fetchCurrentBalance(_transaction!.exchangeId);
     }
-    _fetchCurrentBalance();
     _fetchExchanges();
   }
 
   Future<void> _fetchExchanges() async {
     try {
       _exchanges = await ExchangeService().getExchanges();
+
+      if (widget.transactionModel != null) {
+        _selectedExchange = _exchanges.firstWhere(
+          (exchange) => exchange.id == widget.transactionModel?.exchangeId,
+          orElse: () => throw Exception(
+              'Exchange not found.'), // Optional: Handle case where no match is found
+        );
+      }
+
       setState(() {});
     } catch (e) {
       print('Error fetching exchanges: $e');
     }
   }
 
-  Future<void> _fetchCurrentBalance() async {
+  Future<void> _fetchCurrentBalance(String exchangeId) async {
     try {
-      _balance = await MoneyExchangeService.getCurrentBalance();
+      _balance = await MoneyExchangeService.getExchangeBalance(exchangeId);
       _initialBalance = _balance;
       _updateBalanceText();
       setState(() {});
@@ -148,11 +157,6 @@ class _AddTransactionState extends State<AddTransaction> {
   }
 
   bool _hasUnsavedChanges() {
-    // print('${_descriptionTextController.text} / $_initialDescription');
-    // print('${_amountTextController.text} / $_initialAmount');
-    // print('${_selectedPaymentType} / ${_initialPaymentType??0}');
-    // print('${_jalaliDateTextController.text} / $_initialJalaliDate');
-    // print('${_gregorianDateTextController.text} / $_initialGregorianDate');
     return _descriptionTextController.text != _initialDescription ||
         _amountTextController.text != _initialAmount.toString() ||
         _selectedPaymentType != _initialPaymentType ||
@@ -161,26 +165,30 @@ class _AddTransactionState extends State<AddTransaction> {
   }
 
   Widget buildExchangeSelection() {
-    return DropdownButtonFormField<ExchangeModel>(
-      value: _selectedExchange,
-      decoration: InputDecoration(
-        labelText: Strings.selectExchange,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: DropdownButtonFormField<ExchangeModel>(
+        value: _selectedExchange,
+        decoration: const InputDecoration(
+          labelText: Strings.selectExchange,
+        ),
+        onChanged: (ExchangeModel? newValue) {
+          setState(() {
+            _selectedExchange = newValue;
+            _fetchCurrentBalance(_selectedExchange!.id);
+          });
+        },
+        items: _exchanges.map((ExchangeModel exchange) {
+          return DropdownMenuItem<ExchangeModel>(
+            value: exchange,
+            child: Text(
+                exchange.name), // Adjust according to your `Exchange` class
+          );
+        }).toList(),
+        validator: (value) => value == null ? Strings.selectExchange : null,
       ),
-      onChanged: (ExchangeModel? newValue) {
-        setState(() {
-          _selectedExchange = newValue;
-        });
-      },
-      items: _exchanges.map((ExchangeModel exchange) {
-        return DropdownMenuItem<ExchangeModel>(
-          value: exchange,
-          child: Text(exchange.name), // Adjust according to your `Exchange` class
-        );
-      }).toList(),
-      validator: (value) => value == null ? Strings.selectExchange : null,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -315,13 +323,18 @@ class _AddTransactionState extends State<AddTransaction> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.all(4),
+          margin: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: AppColors.textFieldBGColor,
             border: Border.all(
               color: paymentError
                   ? AppColors.errorColor
-                  : AppColors.textFieldBorderColor,
+                  : Theme.of(context)
+                          .inputDecorationTheme
+                          .border
+                          ?.borderSide
+                          .color ??
+                      AppColors.textFieldBorderColor,
               width: 1.0,
             ),
             borderRadius: textFieldBorderRadius,
@@ -513,13 +526,12 @@ class _AddTransactionState extends State<AddTransaction> {
       );
 
       if (widget.transactionModel == null) {
-        await MoneyExchangeService.addTransaction(transaction);
+        await MoneyExchangeService.addTransaction(
+            transaction, _selectedPaymentType!);
       } else {
         await MoneyExchangeService.updateTransaction(
-            widget.id!, transaction.toMap());
+            widget.id!, transaction, newBalance);
       }
-
-      await MoneyExchangeService.updateBalance(newBalance);
 
       NotificationService().showSuccess(
           context,
@@ -531,7 +543,7 @@ class _AddTransactionState extends State<AddTransaction> {
       setState(() {
         _isLoading = false;
       });
-      print(e);
+      print('error $e');
       NotificationService().showError(
           context,
           widget.id == null

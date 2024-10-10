@@ -7,7 +7,7 @@ class ResponsiveHelper {
         ? [
             Row(
               children: [
-                Expanded(child: widgets.first),
+                  Expanded(child: widgets.first),
                 Expanded(child: widgets.last),
               ],
             )

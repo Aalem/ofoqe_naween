@@ -13,7 +13,7 @@ class MoneyExchangeService {
       final double balanceChange = credit - debit;
 
       await _firestore.runTransaction((txn) async {
-        DocumentReference balanceRef = _firestore.collection(CollectionNames.balance).doc(BalanceFields.documentId);
+        DocumentReference balanceRef = _firestore.collection(CollectionNames.balances).doc(BalanceFields.documentId);
 
         DocumentSnapshot balanceSnapshot = await txn.get(balanceRef);
 
@@ -25,7 +25,7 @@ class MoneyExchangeService {
           });
         }
 
-        DocumentReference transactionRef = _firestore.collection(CollectionNames.moneyExchange).doc();
+        DocumentReference transactionRef = _firestore.collection(CollectionNames.transactions).doc();
         txn.set(transactionRef, transaction.toMap());
       });
     } catch (e) {
@@ -36,7 +36,7 @@ class MoneyExchangeService {
   static Future<void> deleteTransaction(String transactionId) async {
     try {
       await _firestore.runTransaction((txn) async {
-        DocumentReference transactionRef = _firestore.collection(CollectionNames.moneyExchange).doc(transactionId);
+        DocumentReference transactionRef = _firestore.collection(CollectionNames.transactions).doc(transactionId);
 
         DocumentSnapshot transactionSnapshot = await txn.get(transactionRef);
 
@@ -54,7 +54,7 @@ class MoneyExchangeService {
           balanceChange = transaction.credit; // Add credit amount to balance
         }
 
-        DocumentReference balanceRef = _firestore.collection(CollectionNames.balance).doc(BalanceFields.documentId);
+        DocumentReference balanceRef = _firestore.collection(CollectionNames.balances).doc(BalanceFields.documentId);
 
         txn.update(balanceRef, {
           BalanceFields.balance: FieldValue.increment(balanceChange),
@@ -72,7 +72,7 @@ class MoneyExchangeService {
   static Future<double> getCurrentBalance() async {
     try {
       DocumentSnapshot<Map<String, dynamic>> balanceSnapshot = await _firestore
-          .collection(CollectionNames.balance)
+          .collection(CollectionNames.balances)
           .doc(BalanceFields.documentId)
           .get();
       if (balanceSnapshot.exists) {
@@ -87,7 +87,7 @@ class MoneyExchangeService {
 
   static Future<void> updateBalance(double newBalance) async {
     try {
-      DocumentReference balanceRef = _firestore.collection(CollectionNames.balance).doc(BalanceFields.documentId);
+      DocumentReference balanceRef = _firestore.collection(CollectionNames.balances).doc(BalanceFields.documentId);
       await balanceRef.set({BalanceFields.balance: newBalance}, SetOptions(merge: true));
     } catch (e) {
       throw Exception('Failed to update balance: $e');
@@ -95,7 +95,7 @@ class MoneyExchangeService {
   }
 
   static Stream<double> getBalanceStream() {
-    return _firestore.collection(CollectionNames.MEGeneralBalance).doc(BalanceFields.documentId).snapshots().map((snapshot) {
+    return _firestore.collection(CollectionNames.balances).doc(BalanceFields.documentId).snapshots().map((snapshot) {
 
       if (snapshot.exists) {
         var balance = snapshot.data()?[BalanceFields.balance];
@@ -113,7 +113,7 @@ class MoneyExchangeService {
 
   static Future<void> updateTransaction(String id, Map<String, dynamic> transactionData) async {
     try {
-      await _firestore.collection(CollectionNames.moneyExchange).doc(id).update(transactionData);
+      await _firestore.collection(CollectionNames.transactions).doc(id).update(transactionData);
     } catch (e) {
       throw Exception('Failed to update transaction: $e');
     }

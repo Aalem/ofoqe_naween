@@ -37,21 +37,28 @@ class AppTheme {
         border: OutlineInputBorder(
           borderRadius: textFieldBorderRadius,
           borderSide: BorderSide(
-            color: AppColors.textFieldBorderColor.withOpacity(0.3), // Border color
+            color: AppColors.textFieldBorderColor.withOpacity(0.2), // Border color
             width: 1.0, // Border width
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: textFieldBorderRadius,
           borderSide: BorderSide(
-            color: AppColors.textFieldBorderColor.withOpacity(0.3), // Border color
+            color: AppColors.textFieldBorderColor.withOpacity(0.2), // Border color
+            width: 1.0, // Border width
+          ),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: textFieldBorderRadius,
+          borderSide: BorderSide(
+            color: AppColors.textFieldBorderColor.withOpacity(0.2), // Border color
             width: 1.0, // Border width
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: textFieldBorderRadius,
           borderSide: BorderSide(
-            color: AppColors.textFocusedBorderColor.withOpacity(0.5),
+            color: AppColors.textFocusedBorderColor.withOpacity(0.4),
             // Border color when focused
             width: 1.0, // Border width when focused
           ),

@@ -74,18 +74,7 @@ class _AddTransactionState extends State<AddTransaction> {
       _initialJalaliDate = _jalaliDateTextController.text;
       _initialGregorianDate = _gregorianDateTextController.text;
     }
-    _fetchCurrentBalance();
-  }
-
-  Future<void> _fetchCurrentBalance() async {
-    try {
-      _balance = await MoneyExchangeService.getCurrentBalance();
-      _initialBalance = _balance;
-      _updateBalanceText();
-      setState(() {});
-    } catch (e) {
-      print('Error fetching current balance: $e');
-    }
+    // _fetchCurrentBalance();
   }
 
   void _updateBalanceText() {
@@ -472,17 +461,17 @@ class _AddTransactionState extends State<AddTransaction> {
         id: widget.id ?? '',
         //TODO: fix exchange ID ?
         exchangeId: '',
-        exchangeName: ''
+        exchangeName: '',
       );
 
-      if (widget.transactionModel == null) {
-        await MoneyExchangeService.addTransaction(transaction);
-      } else {
-        await MoneyExchangeService.updateTransaction(
-            widget.id!, transaction.toMap());
-      }
+      // if (widget.transactionModel == null) {
+      //   await MoneyExchangeService.addTransaction(transaction);
+      // } else {
+      //   await MoneyExchangeService.updateTransaction(
+      //       widget.id!, transaction.toMap());
+      // }
 
-      await MoneyExchangeService.updateBalance(newBalance);
+      // await MoneyExchangeService.updateGeneralBalance(newBalance);
 
       NotificationService().showSuccess(
           context,

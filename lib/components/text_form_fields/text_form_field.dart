@@ -191,7 +191,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                 : [];
 
     return Padding(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(6),
       child: TextFormField(
         textDirection: widget.keyboardType == TextInputType.number ||
                 widget.keyboardType == TextInputType.phone
