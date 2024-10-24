@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ofoqe_naween/screens/money_exchange/pages/money_exchanges.dart';
+import 'package:ofoqe_naween/screens/money_exchange/pages/exchanges.dart';
 import 'package:ofoqe_naween/screens/money_exchange/pages/transactions.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
@@ -47,7 +47,7 @@ class _MoneyExchangeHomeState extends State<MoneyExchangeHome> {
           body: TabBarView(
             children: [
               TransactionsPage(),
-              MoneyExchangesPage(),
+              const ExchangesPage(),
             ],
           )),
     );

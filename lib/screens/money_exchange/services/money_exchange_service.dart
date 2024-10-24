@@ -94,6 +94,37 @@ class MoneyExchangeService {
     }
   }
 
+  // Function to delete an exchange, return true if deleted, false if there are transactions
+  static Future<void> deleteExchange(String exchangeId) async {
+    try {
+      // Step 1: Check if there are any transactions related to this exchange
+      QuerySnapshot transactionSnapshot = await _firestore
+          .collection(CollectionNames.transactions)
+          .where('exchange_id', isEqualTo: exchangeId)
+          .get();
+
+      if (transactionSnapshot.docs.isNotEmpty) {
+        // There are related transactions, throw an error so UI can handle
+        throw Exception(
+            'There are transactions related to this exchange. Please delete the transactions before deleting the exchange.');
+      }
+
+      // Step 2: Fetch the exchange details
+      DocumentReference exchangeRef =
+          _firestore.collection(CollectionNames.exchanges).doc(exchangeId);
+      DocumentSnapshot exchangeSnapshot = await exchangeRef.get();
+
+      if (!exchangeSnapshot.exists) {
+        throw Exception('Exchange not found');
+      }
+
+      // Step 3: Delete the exchange if there are no transactions
+      await exchangeRef.delete();
+    } catch (e) {
+      throw Exception('Failed to delete exchange: $e');
+    }
+  }
+
   // Update the exchange balance when deleting a transaction
   static Future<void> updateExchangeBalanceOnDelete(
       String exchangeId, double balanceChange) async {
@@ -204,5 +235,3 @@ class MoneyExchangeService {
     });
   }
 }
-
-//TODO: Remove general balance logic
