@@ -65,7 +65,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _customer.name),
-                  label: Strings.custoerName,
+                  label: Strings.customerName,
                   validationMessage: Strings.enterName,
                   onSaved: (value) => _customer.name = value!,
                 ),
@@ -105,7 +105,6 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 validationMessage: Strings.enterValidEmail,
                 onSaved: (value) => _customer.email = value!,
               ),
-
               const SizedBox(height: 20.0),
               Row(
                 children: [
@@ -134,8 +133,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title:
-                                      const Text(Strings.dialogCancelTitle),
+                                  title: const Text(Strings.dialogCancelTitle),
                                   content:
                                       const Text(Strings.dialogCancelMessage),
                                   actions: [

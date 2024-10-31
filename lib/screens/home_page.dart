@@ -49,7 +49,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     NavigationProvider.instance.contentToDisplay = SuppliersPage();
     sidebarXController.setExtended(true);

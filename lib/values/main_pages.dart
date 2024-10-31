@@ -6,7 +6,7 @@ import 'package:ofoqe_naween/screens/suppliers/suppliers.dart';
 import 'strings.dart';
 
 var mainPages = {
-  'customers' : {'title': Strings.customers, 'icon': Icons.people, 'widget': const CustomersPage()},
+  'customers' : {'title': Strings.customers, 'icon': Icons.people, 'widget':  CustomersPage()},
   'suppliers' : {'title': Strings.suppliers, 'icon': Icons.factory, 'widget': const SuppliersPage()},
   'buys' : {'title': Strings.buys, 'icon': Icons.kitchen, 'widget': UnderConstructionPage()},
   'inventory' : {'title': Strings.inventory, 'icon': Icons.inventory, 'widget': UnderConstructionPage()},

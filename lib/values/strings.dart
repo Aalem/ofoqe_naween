@@ -53,7 +53,7 @@ class Strings{
   // Customers
   static const String addCustomerTitle = 'اضافه نمودن مشتری جدید';
   static const String editCustomerTitle = 'ویرایش مشتری';
-  static const String custoerName = 'اسم مشتری';
+  static const String customerName = 'اسم مشتری';
   static const String company = 'شرکت';
   static const String number = 'شماره';
   static const String enterName = 'لطفاً یک نام وارد کنید!';
@@ -100,7 +100,10 @@ class Strings{
   static const String editTransaction = 'ویرایش معامله';
   static const String deleteTransaction = 'حذف معامله: ';
   static const String deleteTransactionMessage = 'آیا مطمئن هستید میخواهیید این معامله را حذف کنید؟';
+  static const String deleteExchangeMessage = 'آیا مطمئن هستید میخواهیید این صرافی را حذف کنید؟';
   static const String failedToDeletingTransaction = 'خطا در حذف معامله';
+  static const String exchangeDeletedSuccessfully = 'صرافی مؤفقانه حذف گردید';
+  static const String failedToDeleteDueToRelatedTransactions = 'برای حذف این صرافی ابتداء معاملات مربوط آنرا حذف کنید!';
   static const String transactionNotFound = 'معاملهی موجود نیست';
   static const String transactions = 'معاملات';
   static const String searchByDescription = 'جستجو به اساس توضیحات';
