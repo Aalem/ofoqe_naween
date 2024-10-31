@@ -53,7 +53,7 @@ class Strings{
   // Customers
   static const String addCustomerTitle = 'اضافه نمودن مشتری جدید';
   static const String editCustomerTitle = 'ویرایش مشتری';
-  static const String custoerName = 'اسم مشتری';
+  static const String customerName = 'اسم مشتری';
   static const String company = 'شرکت';
   static const String number = 'شماره';
   static const String enterName = 'لطفاً یک نام وارد کنید!';

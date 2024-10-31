@@ -316,7 +316,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
+              return const AlertDialog(
                 title: Text(Strings.addTransaction),
                 content: AddTransaction(),
               );
@@ -329,15 +329,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
         stream: _transactionStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            print(snapshot.error);
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          // return _buildDataTable(snapshot.data!);
 
           return SingleChildScrollView(
             scrollDirection: Axis.vertical,
