@@ -408,7 +408,6 @@ class _CustomersPageState extends State<CustomersPage> {
     });
   }
 
-//TODO: Problem: filtered docs and snapshots are different in the list
   List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(
       QuerySnapshot<Map<String, dynamic>> snapshot) {
     String searchText = _searchController.text.toLowerCase();
@@ -649,5 +648,3 @@ class CustomerDataSource extends DataTableSource {
 
   int get rowHeight => 56; // Adjust as needed
 }
-
-//TODO: Customer delete - Should refresh the page
