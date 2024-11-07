@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/components/texts/appbar_title.dart';
 import 'package:ofoqe_naween/screens/customers/collection_fields/customer_fields.dart';
@@ -12,6 +11,8 @@ import 'package:ofoqe_naween/screens/suppliers/services/supplier_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
+
+bool _updateTriggered = false;
 
 class SuppliersPage extends StatefulWidget {
   const SuppliersPage({super.key});
@@ -24,12 +25,13 @@ class _SuppliersPageState extends State<SuppliersPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
-  int _currentPage = 1;
+
   Stream<QuerySnapshot<Map<String, dynamic>>>? _supplierStream;
   late DocumentSnapshot lastRecordedDocumentId;
 
-  final ScrollController _verticalController = ScrollController();
-  final ScrollController _horizontalController = ScrollController();
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
+  List<QueryDocumentSnapshot<Map<String, dynamic>>>? _filteredDocs;
 
   @override
   void initState() {
@@ -44,35 +46,14 @@ class _SuppliersPageState extends State<SuppliersPage> {
 
     query = query.orderBy(SupplierFields.name, descending: true);
 
-    if (_currentPage > 1) {
-      query = query.startAfterDocument(lastRecordedDocumentId);
-    }
-
     query = query.limit(isSearching ? 1 : _pageSize);
 
     return query.snapshots();
   }
 
-  void _handleNextPage() {
-    setState(() {
-      _currentPage++;
-      _supplierStream = _getSuppliers();
-    });
-  }
-
-  void _handlePreviousPage() {
-    if (_currentPage > 1) {
-      setState(() {
-        _currentPage--;
-        _supplierStream = _getSuppliers();
-      });
-    }
-  }
-
   void _search() {
-    _currentPage = 1;
     setState(() {
-      _supplierStream = _getSuppliers(isSearching: false);
+      _filteredDocs = null;
     });
   }
 
@@ -87,134 +68,88 @@ class _SuppliersPageState extends State<SuppliersPage> {
     }).toList();
   }
 
-  Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    int number = (_currentPage - 1) * _pageSize;
-    if (snapshot.docs.isNotEmpty) {
-      var filteredDocs = snapshot.docs;
-      if (_searchController.text.isNotEmpty) {
-        filteredDocs = getFilteredDocs(snapshot);
-      }
+  void _sort<T>(Comparable<T> Function(Supplier) getField, int columnIndex,
+      bool ascending, QuerySnapshot<Map<String, dynamic>> snapshot) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
 
-      if (filteredDocs.isNotEmpty) {
-        lastRecordedDocumentId = filteredDocs.last;
-        return Column(
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(5.0),
-              ),
-              child: DataTable(
-                border: TableBorder.all(
-                  width: 0.1, // Adjust width as needed
-                  color: Colors.grey, // Change color to your preference
-                  style: BorderStyle.solid,
-                ),
-                headingTextStyle: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                headingRowColor: WidgetStateColor.resolveWith(
-                    (states) => Theme.of(context).highlightColor),
-                columns: const [
-                  DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.supplier)),
-                  DataColumn(label: Text(Strings.products)),
-                  DataColumn(label: Text(Strings.phoneNumbers)),
-                  DataColumn(label: Text(Strings.address)),
-                  DataColumn(label: Text(Strings.email)),
-                  DataColumn(label: Text(Strings.website)),
-                  DataColumn(label: Text(Strings.edit)),
-                  DataColumn(label: Text(Strings.delete)),
-                ],
-                rows: filteredDocs.map((entry) {
-                  final supplierEntry = Supplier.fromMap(entry.data());
-                  number++;
-                  return DataRow(
-                    cells: [
-                      DataCell(ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 30),
-                          child: Text(number.toString()))),
-                      DataCell(Text(supplierEntry.name)),
-                      DataCell(Text(supplierEntry.products)),
-                      DataCell(Text(
-                          textDirection: TextDirection.ltr,
-                          '${supplierEntry.phone1} ${supplierEntry.phone2.isNotEmpty ? '\n${supplierEntry.phone2}' : ''}')),
-                      DataCell(Text(supplierEntry.address)),
-                      DataCell(Text(supplierEntry.email)),
-                      DataCell(Text(supplierEntry.website)),
-                      DataCell(
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text(Strings.addCustomerTitle),
-                                  content: AddSupplierPage(
-                                      supplier: supplierEntry, id: entry.id),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      DataCell(IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return ConfirmationDialog(
-                                title: Strings.supplierDeleteTitle +
-                                    supplierEntry.name,
-                                message: Strings.supplierDeleteMessage,
-                                onConfirm: () async {
-                                  try {
-                                    await SupplierService.deleteSupplier(
-                                        entry.id);
-                                    Navigator.of(context).pop();
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            Strings.failedToDeleteSupplier),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                },
-                              );
-                            },
-                          );
-                        },
-                      )),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        );
-      } else {
-        return NothingFound();
-      }
-    } else {
-      return NoDataExists();
+      // Get the filtered list
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+          getFilteredDocs(snapshot);
+
+      // Sort the filtered docs
+      docs.sort((a, b) {
+        final fieldA = getField(Supplier.fromMap(a.data()));
+        final fieldB = getField(Supplier.fromMap(b.data()));
+
+        return ascending
+            ? Comparable.compare(fieldA, fieldB)
+            : Comparable.compare(fieldB, fieldA);
+      });
+
+      _filteredDocs = docs; // Update filtered docs after sorting
+    });
+  }
+
+  void resetFilteredDocs(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    _filteredDocs = getFilteredDocs(snapshot);
+  }
+
+  Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (_filteredDocs == null ||
+        _filteredDocs?.length != snapshot.docs.length) {
+      _filteredDocs = getFilteredDocs(snapshot);
     }
+    if (_filteredDocs!.isEmpty) {
+      return NothingFound();
+    }
+
+    return Theme(
+        data: Theme.of(context).copyWith(
+          cardTheme: Theme.of(context).cardTheme.copyWith(
+              elevation: 0, margin: EdgeInsets.zero, color: Colors.white),
+        ),
+        child: SizedBox(
+            width: double.infinity,
+            child: PaginatedDataTable(
+              showEmptyRows: false,
+              columns: [
+                const DataColumn(label: Text(Strings.number), numeric: true),
+                DataColumn(
+                  label: const Text(Strings.company),
+                  onSort: (columnIndex, ascending) => _sort<String>(
+                      (s) => s.name, columnIndex, ascending, snapshot),
+                ),
+                const DataColumn(label: Text(Strings.products)),
+                const DataColumn(label: Text(Strings.phoneNumbers)),
+                DataColumn(
+                    label: const Text(Strings.address),
+                    onSort: (columnIndex, ascending) => _sort<String>(
+                        (c) => c.name, columnIndex, ascending, snapshot)),
+                const DataColumn(label: Text(Strings.website)),
+                const DataColumn(label: Text(Strings.email)),
+                const DataColumn(label: Text(Strings.actions)),
+              ],
+              rowsPerPage: _filteredDocs!.length < _pageSize
+                  ? _filteredDocs!.length
+                  : _pageSize,
+              sortColumnIndex: _sortColumnIndex,
+              sortAscending: _sortAscending,
+              source: CustomerDataSource(_filteredDocs!, context),
+            )));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
+              return const AlertDialog(
                 title: Text(Strings.addSupplierTitle),
                 content: AddSupplierPage(),
               );
@@ -224,11 +159,19 @@ class _SuppliersPageState extends State<SuppliersPage> {
         child: const Icon(Icons.add),
       ),
       appBar: AppBar(
-        title: const Align(alignment: Alignment.centerRight, child: AppbarTitle(title: Strings.supplier)),
+        title: const Align(
+            alignment: Alignment.centerRight,
+            child: AppbarTitle(title: Strings.suppliers)),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _supplierStream,
         builder: (context, snapshot) {
+          if (_updateTriggered) {
+            if (snapshot.data != null) {
+              resetFilteredDocs(snapshot.data!);
+              _updateTriggered = false;
+            }
+          }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
@@ -250,14 +193,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    prefixIcon: IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        // _search();
-                        setState(() {});
-                      },
-                    ),
                     suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () => _search(),
+                    ),
+                    prefixIcon: IconButton(
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         if (_searchController.text.isNotEmpty) {
@@ -267,58 +207,13 @@ class _SuppliersPageState extends State<SuppliersPage> {
                       },
                     ),
                   ),
-                  onSubmitted: (value) {
-                    // _search();
-                    setState(() {});
-                  },
+                  onSubmitted: (value) => _search(),
                 ),
               ),
-              const SizedBox(height: 10),
               Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Scrollbar(
-                    controller: _verticalController,
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      controller: _verticalController,
-                      scrollDirection: Axis.vertical,
-                      child: Scrollbar(
-                        controller: _horizontalController,
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          controller: _horizontalController,
-                          scrollDirection: Axis.horizontal,
-                          child: _buildDataTable(snapshot.data!),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Visibility(
-                      visible: _currentPage > 1,
-                      child: TextButton(
-                        onPressed: _handlePreviousPage,
-                        child: const Text(Strings.previous),
-                      ),
-                    ),
-                    const SizedBox(width: 10.0),
-                    Text('${Strings.page} $_currentPage'),
-                    const SizedBox(width: 10.0),
-                    Visibility(
-                      visible: snapshot.data!.docs.length == _pageSize,
-                      child: TextButton(
-                        onPressed: _handleNextPage,
-                        child: const Text(Strings.next),
-                      ),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: _buildDataTable(snapshot.data!),
                 ),
               ),
             ],
@@ -327,4 +222,105 @@ class _SuppliersPageState extends State<SuppliersPage> {
       ),
     );
   }
+}
+
+class CustomerDataSource extends DataTableSource {
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> suppliers;
+  final BuildContext context;
+
+  CustomerDataSource(this.suppliers, this.context);
+
+  @override
+  DataRow getRow(int index) {
+    if (index >= suppliers.length) {
+      return const DataRow(cells: []);
+    }
+    final supplier = Supplier.fromMap(suppliers[index].data());
+    return DataRow(
+      cells: [
+        DataCell(Text((index + 1).toString())),
+        DataCell(Text(supplier.name)),
+        DataCell(Text(supplier.products)),
+        DataCell(Text(
+            textDirection: TextDirection.ltr,
+            '${supplier.phone1} ${supplier.phone2.isNotEmpty ? '\n${supplier.phone2}' : ''}')),
+        DataCell(Text(supplier.address)),
+        DataCell(Text(supplier.website)),
+        DataCell(Text(supplier.email)),
+        DataCell(
+          PopupMenuButton<int>(
+            onSelected: (i) {
+              switch (i) {
+                case 1:
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text(Strings.addCustomerTitle),
+                        content: AddSupplierPage(
+                            supplier: supplier, id: suppliers[index].id),
+                      );
+                    },
+                  );
+                  _updateTriggered = true;
+                  break;
+                case 2:
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return ConfirmationDialog(
+                        title: Strings.supplierDeleteTitle + supplier.name,
+                        message: Strings.customerDeleteMessage,
+                        onConfirm: () async {
+                          try {
+                            await SupplierService.deleteSupplier(
+                                suppliers[index].id);
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(Strings.failedToDeleteSupplier),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  );
+              }
+            },
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 1,
+                child: ListTile(
+                  leading: Icon(Icons.edit, color: Colors.blue),
+                  title: Text(Strings.edit),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 2,
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text(Strings.delete),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => suppliers.length;
+
+  @override
+  int get selectedRowCount => 0;
+
+  int get rowHeight => 56; // Adjust as needed
 }

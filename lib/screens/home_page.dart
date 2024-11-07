@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ofoqe_naween/providers/navigation_provider.dart';
+import 'package:ofoqe_naween/screens/buys/buys.dart';
 import 'package:ofoqe_naween/screens/suppliers/suppliers.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    NavigationProvider.instance.contentToDisplay = SuppliersPage();
+    NavigationProvider.instance.contentToDisplay = Buys();
     sidebarXController.setExtended(true);
   }
 

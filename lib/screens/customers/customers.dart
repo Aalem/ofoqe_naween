@@ -25,8 +25,6 @@ class _CustomersPageState extends State<CustomersPage> {
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>>? _customerStream;
-
   int? _sortColumnIndex;
   bool _sortAscending = true;
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? _filteredDocs;
@@ -34,7 +32,6 @@ class _CustomersPageState extends State<CustomersPage> {
   @override
   void initState() {
     super.initState();
-    _customerStream = _getCustomers();
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers() {
@@ -158,7 +155,7 @@ class _CustomersPageState extends State<CustomersPage> {
         stream: _getCustomers(),
         builder: (context, snapshot) {
           if (_updateTriggered) {
-            if(snapshot.data != null){
+            if (snapshot.data != null) {
               resetFilteredDocs(snapshot.data!);
               _updateTriggered = false;
             }
@@ -183,13 +180,11 @@ class _CustomersPageState extends State<CustomersPage> {
                     hintText: Strings.search,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0)),
-                    prefixIcon: IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        _search(); // Trigger search
-                      },
-                    ),
                     suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () => _search(),
+                    ),
+                    prefixIcon: IconButton(
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         if (_searchController.text.isNotEmpty) {
@@ -199,9 +194,7 @@ class _CustomersPageState extends State<CustomersPage> {
                       },
                     ),
                   ),
-                  onSubmitted: (value) {
-                    _search(); // Trigger search on submit
-                  },
+                  onSubmitted: (value) => _search(),
                 ),
               ),
               Expanded(

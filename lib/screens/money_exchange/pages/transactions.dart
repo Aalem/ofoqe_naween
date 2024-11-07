@@ -262,7 +262,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               },
             ),
             const DataColumn(
-              label: const Text(Strings.description),
+              label: Text(Strings.description),
             ),
             DataColumn(
               label: const Text(Strings.moneyExchange),
@@ -290,18 +290,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     ascending);
               },
             ),
-            // Single Actions column
             const DataColumn(
               label: Text(Strings.actions),
             ),
           ],
           source: _dataSource,
-          // onPageChanged: (index) {
-          //   setState(() {
-          //     _currentPage = index ~/ 10 + 1;
-          //     _transactionStream = _getTransactions();
-          //   });
-          // },
         ),
       ),
     );
