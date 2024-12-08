@@ -4,8 +4,9 @@ import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
 import 'package:ofoqe_naween/screens/suppliers/services/supplier_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class AddSupplierPage extends StatefulWidget {
@@ -67,7 +68,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                 label: Strings.products,
                 onSaved: (value) => _supplier.products = value!,
               ),
-              ...ResponsiveHelper.genResponsiveTwoWidgets([
+              ...ResponsiveHelper.genResponsiveWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _supplier.phone1),
@@ -94,7 +95,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                 validationMessage: Strings.enterAddress,
                 onSaved: (value) => _supplier.address = value!,
               ),
-              ...ResponsiveHelper.genResponsiveTwoWidgets([
+              ...ResponsiveHelper.genResponsiveWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _supplier.email),

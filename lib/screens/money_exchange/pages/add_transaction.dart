@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/exchange_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/exchange_service.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:provider/provider.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
@@ -11,7 +12,7 @@ import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_serv
 import 'package:ofoqe_naween/screens/money_exchange/providers/balance_provider.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class AddTransaction extends StatefulWidget {

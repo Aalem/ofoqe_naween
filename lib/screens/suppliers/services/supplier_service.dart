@@ -1,4 +1,5 @@
 import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
+import 'package:ofoqe_naween/screens/suppliers/models/supplier_model.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 
 class SupplierService {
@@ -33,6 +34,19 @@ class SupplierService {
           .delete();
     } catch (e) {
       throw Exception('Failed to delete supplier: $e');
+    }
+  }
+
+  static Future<List<Supplier>> getSuppliers() async {
+    try {
+      final querySnapshot = await _firestore.collection(CollectionNames.suppliers).get();
+      return querySnapshot.docs.map((doc) {
+        final supplierData = doc.data();
+        supplierData['id'] = doc.id; // Add the document ID to the supplier data
+        return Supplier.fromMap(supplierData);
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to retrieve suppliers: $e');
     }
   }
 

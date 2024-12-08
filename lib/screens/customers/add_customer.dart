@@ -4,8 +4,9 @@ import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/screens/customers/models/customer_model.dart';
 import 'package:ofoqe_naween/screens/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class NewCustomerPage extends StatefulWidget {
@@ -54,7 +55,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...ResponsiveHelper.genResponsiveTwoWidgets([
+              ...ResponsiveHelper.genResponsiveWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   label: Strings.company,
@@ -77,7 +78,7 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
                 validationMessage: Strings.enterAddress,
                 onSaved: (value) => _customer.address = value!,
               ),
-              ...ResponsiveHelper.genResponsiveTwoWidgets([
+              ...ResponsiveHelper.genResponsiveWidgets([
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _customer.phone1),

@@ -1,30 +1,38 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/rendering.dart';
 import 'package:ofoqe_naween/components/buttons/button_icon.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
+import 'package:ofoqe_naween/components/no_data.dart';
+import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
+import 'package:ofoqe_naween/components/texts/date_with_suffix.dart';
+import 'package:ofoqe_naween/providers/navigation_provider.dart';
+import 'package:ofoqe_naween/screens/buys/pages/add_invoice.dart';
 import 'package:ofoqe_naween/screens/money_exchange/pages/add_transaction.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/utilities/date_time_utils.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:ofoqe_naween/values/strings.dart';
+import 'package:provider/provider.dart';
 
-class Buys extends StatefulWidget {
+class BuysPage extends StatefulWidget {
   @override
-  _BuysState createState() => _BuysState();
+  _BuysPageState createState() => _BuysPageState();
 }
 
-class _BuysState extends State<Buys> {
+class _BuysPageState extends State<BuysPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final int _pageSize = 11;
+  final int _pageSize = 15;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _dateRangeController = TextEditingController();
   final TextEditingController _specificDateController = TextEditingController();
@@ -39,10 +47,29 @@ class _BuysState extends State<Buys> {
 
   JalaliRange? _selectedDateRange;
 
+  int _rowsPerPage = 12;
+  bool _sortAscending = true;
+  int? _sortColumnIndex = 1;
+  late TransactionDataSource _dataSource;
+
   @override
   void initState() {
     super.initState();
     _transactionStream = _getTransactions();
+    _dataSource =
+        TransactionDataSource([], 0, context); // Initialize with empty list
+  }
+
+  // Sorting handler
+  void _sort<T>(
+      Comparable<T> Function(DocumentSnapshot<Map<String, dynamic>>) getField,
+      int columnIndex,
+      bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+    });
+    _dataSource.sort(getField, ascending);
   }
 
   @override
@@ -59,42 +86,34 @@ class _BuysState extends State<Buys> {
     bool isSearching = false,
   }) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.transactions);
+    _firestore.collection(CollectionNames.transactions);
 
     // Apply date filtering (specific or range)
     if (_specificDateController.text.isNotEmpty) {
       Jalali jalaliDate =
-          DateTimeUtils.stringToJalaliDate(_specificDateController.text);
+      DateTimeUtils.stringToJalaliDate(_specificDateController.text);
       DateTime specificDate = jalaliDate.toDateTime();
-
       query = query.where(MoneyExchangeFields.gregorianDate,
           isEqualTo: specificDate);
     } else if (_selectedDateRange != null) {
       query = query
           .where(MoneyExchangeFields.gregorianDate,
-              isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
+          isGreaterThanOrEqualTo: _selectedDateRange!.start.toDateTime())
           .where(MoneyExchangeFields.gregorianDate,
-              isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
+          isLessThanOrEqualTo: _selectedDateRange!.end.toDateTime());
     }
 
-    // Filter by debit/credit if a checkbox is selected, unless both are checked
-    if (!(_isDebitChecked && _isCreditChecked)) {
+    // Apply debit/credit filters
+    if (_isDebitChecked || _isCreditChecked) {
       if (_isDebitChecked) {
         query = query.where(MoneyExchangeFields.debit, isGreaterThan: 0);
-      } else if (_isCreditChecked) {
+      }
+      if (_isCreditChecked) {
         query = query.where(MoneyExchangeFields.credit, isGreaterThan: 0);
       }
     }
 
-    // Now that filtering is complete, order by date (if needed)
-    if (_specificDateController.text.isEmpty &&
-        _selectedDateRange == null &&
-        !(_isDebitChecked || _isCreditChecked)) {
-      // Only order by date if no other filtering is applied
-      // query = query.orderBy('date', descending: true);
-    }
-
-    // Pagination logic (unchanged)
+    // Pagination logic
     if (_currentPage > 1) {
       query = query.startAfterDocument(lastRecordedDocumentId);
     }
@@ -102,22 +121,6 @@ class _BuysState extends State<Buys> {
     query = query.limit(isSearching ? 1 : _pageSize);
 
     return query.snapshots();
-  }
-
-  void _handleNextPage() {
-    setState(() {
-      _currentPage++;
-      _transactionStream = _getTransactions();
-    });
-  }
-
-  void _handlePreviousPage() {
-    if (_currentPage > 1) {
-      setState(() {
-        _currentPage--;
-        _transactionStream = _getTransactions();
-      });
-    }
   }
 
   void _search() {
@@ -135,161 +138,399 @@ class _BuysState extends State<Buys> {
       _isDebitChecked = false;
       _isCreditChecked = false;
       _selectedDateRange = null;
-      _currentPage = 1;
       _transactionStream = _getTransactions(isSearching: false);
     });
   }
 
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    int number = (_currentPage - 1) * _pageSize;
-    if (snapshot.docs.isNotEmpty) {
-      lastRecordedDocumentId = snapshot.docs.last;
+    if (snapshot.docs.isEmpty) {
+      return NoDataExists();
+    }
 
-      var filteredDocs = snapshot.docs;
-      if ((_isDebitChecked || _isCreditChecked) && _selectedDateRange != null) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc.data()[MoneyExchangeFields.debit] > 0;
-        }).toList();
+    lastRecordedDocumentId = snapshot.docs.last;
+    var filteredDocs = snapshot.docs;
+
+    // Apply debit/credit filters
+    if (_isDebitChecked || _isCreditChecked) {
+      filteredDocs = filteredDocs.where((doc) {
+        final data = doc.data();
+        final isDebit =
+            _isDebitChecked && (data[MoneyExchangeFields.debit] ?? 0) > 0;
+        final isCredit =
+            _isCreditChecked && (data[MoneyExchangeFields.credit] ?? 0) > 0;
+        return isDebit || isCredit;
+      }).toList();
+    }
+
+    // Apply search filter
+    if (_searchController.text.isNotEmpty) {
+      filteredDocs = filteredDocs.where((doc) {
+        return (doc.data()[MoneyExchangeFields.description] ?? '')
+            .contains(_searchController.text);
+      }).toList();
+    }
+    _dataSource = TransactionDataSource(filteredDocs, 0, context);
+    // Apply sorting before creating the data source
+    filteredDocs.sort((a, b) {
+      Comparable aValue;
+      Comparable bValue;
+
+      switch (_sortColumnIndex) {
+        case 1: // No
+        case 2: // Gregorian Date
+          aValue = a.data()[MoneyExchangeFields.gregorianDate]?.toDate()?.millisecondsSinceEpoch ?? 0;
+          bValue = b.data()[MoneyExchangeFields.gregorianDate]?.toDate()?.millisecondsSinceEpoch ?? 0;
+          break;
+        case 3: // Exchange Name
+          aValue = a.data()[MoneyExchangeFields.exchangeName]?.toString() ?? '';
+          bValue = b.data()[MoneyExchangeFields.exchangeName]?.toString() ?? '';
+          break;
+        case 4: // Debit (double)
+          aValue = (a.data()[MoneyExchangeFields.debit] as num).toDouble() ?? 0.0;
+          bValue = (b.data()[MoneyExchangeFields.debit] as num).toDouble() ?? 0.0;
+          break;
+        case 5: // Credit (double)
+          aValue = (a.data()[MoneyExchangeFields.credit] as num).toDouble() ?? 0.0;
+          bValue = (b.data()[MoneyExchangeFields.credit] as num).toDouble() ?? 0.0;
+          break;
+        default:
+          aValue = ''; // Default empty for strings
+          bValue = '';
       }
-      if (_searchController.text.isNotEmpty) {
-        filteredDocs = snapshot.docs.where((doc) {
-          return doc
-              .data()[MoneyExchangeFields.description]
-              .contains(_searchController.text);
-        }).toList();
+      // Ignore `0` values in debit and credit fields for sorting
+      if (aValue is num && aValue == 0) {
+        return 1; // Treat `0` as greater to push to the bottom
       }
-      if (_specificDateController.text.isEmpty &&
-          _selectedDateRange == null &&
-          !(_isDebitChecked || _isCreditChecked)) {
-        filteredDocs.sort((a, b) =>
-            b[MoneyExchangeFields.date].compareTo(a[MoneyExchangeFields.date]));
+      if (bValue is num && bValue == 0) {
+        return -1; // Treat `0` as greater to push to the bottom
       }
 
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(5.0),
+      // Ensure that you are comparing the same type of values (String or num)
+      if (aValue.runtimeType != bValue.runtimeType) {
+        return 0; // Skip sorting when types are different
+      }
+
+
+      return _sortAscending
+          ? Comparable.compare(aValue, bValue)
+          : Comparable.compare(bValue, aValue);
+    });
+
+
+
+    if (filteredDocs.isEmpty) {
+      return NothingFound();
+    }
+
+    _rowsPerPage = 12;
+    _rowsPerPage = _dataSource.rowCount < _rowsPerPage
+        ? _dataSource.rowCount
+        : _rowsPerPage;
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        cardTheme: Theme.of(context).cardTheme.copyWith(
+            elevation: 0, margin: EdgeInsets.zero, color: Colors.white),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: PaginatedDataTable(
+          // header: Text('Hello'),
+          showEmptyRows: false,
+          // hidePaginator: true,
+          // wrapInCard: false,
+          // actions: [Text('Hello')],
+          rowsPerPage: _rowsPerPage,
+          // availableRowsPerPage: [_rowsPerPage, 20, 25, 30, 35],
+          // onRowsPerPageChanged: (value) {
+          //   setState(() {
+          //     _rowsPerPage = value!;
+          //   });
+          // },
+          sortColumnIndex: _sortColumnIndex,
+          sortAscending: _sortAscending,
+          columns: [
+            const DataColumn(
+              label: Text(Strings.number),
+              // size: ColumnSize.S,
             ),
-            child: DataTable(
-              border: TableBorder.all(
-                width: 0.1,
-                color: Colors.grey,
-                style: BorderStyle.solid,
-              ),
-              headingTextStyle: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-              headingRowColor: WidgetStateColor.resolveWith(
-                  (states) => Theme.of(context).highlightColor),
-              columns: const [
-                DataColumn(label: Text(Strings.number)),
-                DataColumn(label: Text(Strings.jalaliDate)),
-                DataColumn(label: Text(Strings.gregorianDate)),
-                DataColumn(label: Text(Strings.description)),
-                DataColumn(label: Text(Strings.debit)),
-                DataColumn(label: Text(Strings.credit)),
-                DataColumn(label: Text(Strings.edit)),
-                DataColumn(label: Text(Strings.delete)),
+            DataColumn(
+              label: const Text(Strings.date),
+              onSort: (columnIndex, ascending) {
+                _sort<DateTime>(
+                        (doc) => doc
+                        .data()?[MoneyExchangeFields.gregorianDate]
+                        ?.toDate(),
+                    columnIndex,
+                    ascending);
+              },
+            ),
+            const DataColumn(
+              label: Text(Strings.description),
+            ),
+            DataColumn(
+              label: const Text(Strings.moneyExchange),
+              onSort: (columnIndex, ascending) {
+                _sort<String>(
+                        (doc) =>
+                    doc.data()?[MoneyExchangeFields.exchangeName] ?? '',
+                    columnIndex,
+                    ascending);
+              },
+            ),
+            DataColumn(
+              label: const Text(Strings.debit),
+              onSort: (columnIndex, ascending) {
+                _sort<num>((doc) => doc.data()?[MoneyExchangeFields.debit] ?? 0,
+                    columnIndex, ascending);
+              },
+            ),
+            DataColumn(
+              label: const Text(Strings.credit),
+              onSort: (columnIndex, ascending) {
+                _sort<num>(
+                        (doc) => doc.data()?[MoneyExchangeFields.credit] ?? 0,
+                    columnIndex,
+                    ascending);
+              },
+            ),
+            const DataColumn(
+              label: Text(Strings.actions),
+            ),
+          ],
+          source: _dataSource,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Provider.of<NavigationProvider>(context, listen: false)
+              .updatePage(const AddInvoicePage());
+        },
+        child: const Icon(Icons.add),
+      ),
+      appBar: AppBar(
+        title: StreamBuilder<double>(
+          stream: MoneyExchangeService.getBalanceStream(),
+          builder: (context, snapshot) {
+            double balance = snapshot.hasData ? snapshot.data! : 0.0;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(Strings.buys),
+                Text(
+                  '${Strings.balance}: ${GeneralFormatter.formatNumber(balance.abs().toString()).split('.')[0]}${balance >= 0 ? '\$ ' : ' - \$'}',
+                  // textAlign: TextAlign.start,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: balance >= 0
+                          ? Colors.green
+                          : Colors.red), // Set text alignment to start
+                ),
               ],
-              rows: filteredDocs.map((entry) {
-                final transactionEntry = entry.data();
-                number++;
-                return DataRow(
-                  cells: [
-                    DataCell(ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 30),
-                        child: Text(number.toString()))),
-                    DataCell(Text(
-                      Jalali.fromDateTime(transactionEntry[
-                                  MoneyExchangeFields.gregorianDate]
-                              .toDate())
-                          .formatCompactDate()
-                          .toString(),
-                    )),
-                    DataCell(Text(
-                      GeneralFormatter.formatDate(
-                          transactionEntry[MoneyExchangeFields.gregorianDate]
-                              .toDate()),
-                    )),
-                    DataCell(Text(
-                        transactionEntry[MoneyExchangeFields.description] ??
-                            '')),
-                    DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
-                        transactionEntry[MoneyExchangeFields.debit]))),
-                    DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
-                        transactionEntry[MoneyExchangeFields.credit]))),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text(Strings.editTransaction),
-                                content: AddTransaction(
-                                    transactionModel:
-                                        TransactionModel.fromMap(
-                                            transactionEntry, entry.id),
-                                    id: entry.id),
-                              );
-                            },
-                          );
-                        },
+            );
+          },
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _transactionStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Column(
+              children: [
+                buildFilterByDescription(context),
+                if (_showFilters && ScreenSize.getWidth(context) >= 1200)
+                  buildAdditionalFilters(context),
+                _buildDataTable(snapshot.data!),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Container buildAdditionalFilters(BuildContext context) {
+    return Container(
+      color: AppColors.appBarBG,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: CustomTextFormField(
+              label: Strings.dateRange,
+              controller: _dateRangeController,
+              readOnly: true,
+              onTap: () async {
+                await _pickDateRange(context);
+              },
+              displaySuffix: false,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: CustomTextFormField(
+              label: Strings.date,
+              displaySuffix: false,
+              controller: _specificDateController,
+              readOnly: true,
+              onTap: () async {
+                final Jalali? picked = await showDariDatePicker(
+                  context: context,
+                  initialDate: Jalali.now(),
+                  firstDate: Jalali(1385, 8),
+                  lastDate: Jalali(1450, 9),
+                  initialEntryMode: DDatePickerEntryMode.calendarOnly,
+                  initialDatePickerMode: DDatePickerMode.day,
+                  builder: (context, child) {
+                    return Theme(
+                      data: ThemeData(
+                        dialogTheme: const DialogTheme(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(0)),
+                          ),
+                        ),
                       ),
-                    ),
-                    DataCell(IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return ConfirmationDialog(
-                              title: Strings.deleteTransaction +
-                                  transactionEntry[
-                                      MoneyExchangeFields.description],
-                              message: Strings.deleteTransactionMessage,
-                              onConfirm: () async {
-                                try {
-                                  await MoneyExchangeService.deleteTransaction(
-                                      entry.id);
-                                  Navigator.of(context).pop();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Failed to delete transaction'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        );
-                      },
-                    )),
-                  ],
+                      child: child!,
+                    );
+                  },
                 );
-              }).toList(),
+                if (picked != null) {
+                  _dateRangeController.clear();
+                  _specificDateController.text = picked.formatCompactDate();
+                  _search();
+                }
+              },
+            ),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isDebitChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isDebitChecked = value!;
+                          // _search();
+                        });
+                      },
+                    ),
+                    const Text(Strings.debit),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isCreditChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isCreditChecked = value!;
+                          // _search();
+                        });
+                      },
+                    ),
+                    const Text(Strings.credit),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  onPressed: _search,
+                  icon: const Icon(Icons.search),
+                ),
+                IconButton(
+                  onPressed: _clearFilters,
+                  icon: const Icon(Icons.clear),
+                ),
+              ],
             ),
           ),
         ],
-      );
-    } else {
-      return const Text(
-        Strings.transactionNotFound,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.red,
-        ),
-      );
-    }
+      ),
+    );
+  }
+
+  Container buildFilterByDescription(BuildContext context) {
+    return Container(
+      color: AppColors.appBarBG,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: Strings.searchByDescription,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    _clearFilters(keepDescription: true);
+                    _search();
+                  },
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    if (_searchController.text.isNotEmpty) {
+                      _searchController.clear();
+                      _search();
+                    }
+                  },
+                ),
+              ),
+              onSubmitted: (value) {
+                _clearFilters(keepDescription: true);
+                _search();
+              },
+            ),
+          ),
+          ButtonIcon(
+              icon: Icons.filter_list,
+              onPressed: () {
+                setState(() {
+                  if (ScreenSize.isPhone(context)) {
+                    showDialog(
+                        builder: (context) {
+                          return _buildFilterDialog(context);
+                        },
+                        context: context);
+                  } else {
+                    _showFilters = !_showFilters;
+                    if (!_showFilters) {
+                      _clearFilters();
+                    }
+                  }
+                });
+              }),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -308,287 +549,10 @@ class _BuysState extends State<Buys> {
     if (picker != null) {
       _selectedDateRange = picker;
       _dateRangeController.text =
-          '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
+      '${picker.start.formatCompactDate()} - ${picker.end.formatCompactDate()}';
       _specificDateController.clear();
     }
     _search();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text(Strings.addTransaction),
-                content: AddTransaction(),
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
-      appBar: AppBar(
-        title: StreamBuilder<double>(
-          stream: MoneyExchangeService.getBalanceStream(),
-          builder: (context, snapshot) {
-            double balance = snapshot.hasData ? snapshot.data! : 0.0;
-
-            return Row(
-              children: [
-                Expanded(
-                    child: Text(
-                  '${balance >= 0 ? '\$ ' : '\$ - '}${Strings.balance}: ${GeneralFormatter.formatNumber(balance.abs().toString()).split('.')[0]}',
-                  textAlign: TextAlign.start,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: balance >= 0
-                          ? Colors.green
-                          : Colors.red), // Set text alignment to start
-                )),
-                const Text(Strings.buys),
-              ],
-            );
-          },
-        ),
-      ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _transactionStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            print(snapshot.error);
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return Column(
-            children: [
-              Container(
-                color: AppColors.appBarBG,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: Strings.searchByDescription,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          prefixIcon: IconButton(
-                            icon: const Icon(Icons.search),
-                            onPressed: () {
-                              _clearFilters(keepDescription: true);
-                              _search();
-                            },
-                          ),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              if (_searchController.text.isNotEmpty) {
-                                _searchController.clear();
-                                _search();
-                              }
-                            },
-                          ),
-                        ),
-                        onSubmitted: (value) {
-                          _clearFilters(keepDescription: true);
-                          _search();
-                        },
-                      ),
-                    ),
-                    ButtonIcon(
-                        icon: Icons.filter_list,
-                        onPressed: () {
-                          setState(() {
-                            if (ScreenSize.isPhone(context)) {
-                              showDialog(
-                                  builder: (context) {
-                                    return _buildFilterDialog(context);
-                                  },
-                                  context: context);
-                            } else {
-                              _showFilters = !_showFilters;
-                              if (!_showFilters) {
-                                _clearFilters();
-                              }
-                            }
-                          });
-                        }),
-                  ],
-                ),
-              ),
-              // if (_showFilters) const SizedBox(height: 10),
-              if (_showFilters && ScreenSize.getWidth(context) >= 1200)
-                Container(
-                  color: AppColors.appBarBG,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: CustomTextFormField(
-                          label: Strings.dateRange,
-                          controller: _dateRangeController,
-                          readOnly: true,
-                          onTap: () async {
-                            await _pickDateRange(context);
-                          },
-                          displaySuffix: false,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: CustomTextFormField(
-                          label: Strings.date,
-                          displaySuffix: false,
-                          controller: _specificDateController,
-                          readOnly: true,
-                          onTap: () async {
-                            final Jalali? picked = await showDariDatePicker(
-                              context: context,
-                              initialDate: Jalali.now(),
-                              firstDate: Jalali(1385, 8),
-                              lastDate: Jalali(1450, 9),
-                              initialEntryMode:
-                                  DDatePickerEntryMode.calendarOnly,
-                              initialDatePickerMode: DDatePickerMode.day,
-                              builder: (context, child) {
-                                return Theme(
-                                  data: ThemeData(
-                                    dialogTheme: const DialogTheme(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(0)),
-                                      ),
-                                    ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) {
-                              _dateRangeController.clear();
-                              _specificDateController.text =
-                                  picked.formatCompactDate();
-                              _search();
-                            }
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isDebitChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isDebitChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.debit),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isCreditChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _isCreditChecked = value!;
-                                    });
-                                  },
-                                ),
-                                const Text(Strings.credit),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              onPressed: _search,
-                              icon: const Icon(Icons.search),
-                            ),
-                            IconButton(
-                              onPressed: _clearFilters,
-                              icon: const Icon(Icons.clear),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Scrollbar(
-                    controller: _verticalScrollController,
-                    thumbVisibility: true,
-                    trackVisibility: true,
-                    child: SingleChildScrollView(
-                      controller: _verticalScrollController,
-                      scrollDirection: Axis.vertical,
-                      child: Scrollbar(
-                        controller: _horizontalScrollController,
-                        thumbVisibility: true,
-                        trackVisibility: true,
-                        child: SingleChildScrollView(
-                          controller: _horizontalScrollController,
-                          scrollDirection: Axis.horizontal,
-                          child: _buildDataTable(snapshot.data!),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Visibility(
-                      visible: _currentPage > 1,
-                      child: TextButton(
-                        onPressed: _handlePreviousPage,
-                        child: const Text(Strings.previous),
-                      ),
-                    ),
-                    const SizedBox(width: 10.0),
-                    Text('${Strings.page} $_currentPage'),
-                    const SizedBox(width: 10.0),
-                    Visibility(
-                      visible: snapshot.data!.docs.length == _pageSize,
-                      child: TextButton(
-                        onPressed: _handleNextPage,
-                        child: const Text(Strings.next),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
   }
 
   Widget _buildFilterDialog(BuildContext context) {
@@ -634,7 +598,7 @@ class _BuysState extends State<Buys> {
                     if (pickedDateRange != null) {
                       _selectedDateRange = pickedDateRange;
                       _dateRangeController.text =
-                          "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
+                      "${pickedDateRange.start.formatCompactDate()} - ${pickedDateRange.end.formatCompactDate()}";
                     }
                   },
                 ),
@@ -685,5 +649,143 @@ class _BuysState extends State<Buys> {
         );
       },
     );
+  }
+}
+
+class TransactionDataSource extends DataTableSource {
+  List<DocumentSnapshot<Map<String, dynamic>>> filteredDocs;
+  final BuildContext context;
+  int number;
+
+  TransactionDataSource(this.filteredDocs, this.number, this.context);
+
+  @override
+  DataRow getRow(int index) {
+    if (index >= filteredDocs.length) return DataRow(cells: []);
+
+    final transactionEntry = filteredDocs[index].data();
+    number = index + 1;
+
+    return DataRow(cells: [
+      DataCell(ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 30),
+          child: Text(number.toString()))),
+      DataCell(
+        Column(
+          children: [
+            DateWithSuffix(
+                date: Jalali.fromDateTime(
+                    transactionEntry![MoneyExchangeFields.gregorianDate]
+                        .toDate())
+                    .formatCompactDate(),
+                suffix: Strings.hijriDateSuffix),
+            DateWithSuffix(
+              date: GeneralFormatter.formatDate(
+                  transactionEntry[MoneyExchangeFields.gregorianDate].toDate()),
+              suffix: Strings.gregorianDateSuffix,
+              dateColor: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+      DataCell(Text(transactionEntry[MoneyExchangeFields.description] ?? '')),
+      DataCell(Text(transactionEntry[MoneyExchangeFields.exchangeName] ?? '')),
+      DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
+          transactionEntry[MoneyExchangeFields.debit]))),
+      DataCell(Text(GeneralFormatter.formatAndRemoveTrailingZeros(
+          transactionEntry[MoneyExchangeFields.credit]))),
+      DataCell(
+        PopupMenuButton<int>(
+          onSelected: (i) {
+            switch (i) {
+              case 1:
+              // Navigator.pop(context); // Close the popup
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text(Strings.editTransaction),
+                      content: AddTransaction(
+                          transactionModel: TransactionModel.fromMap(
+                              transactionEntry, filteredDocs[index].id),
+                          id: filteredDocs[index].id),
+                    );
+                  },
+                );
+                break;
+              case 2:
+              // Navigator.pop(context); // Close the popup
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return ConfirmationDialog(
+                      title: Strings.deleteTransaction +
+                          (transactionEntry[MoneyExchangeFields.description] ??
+                              ''),
+                      message: Strings.deleteTransactionMessage,
+                      onConfirm: () async {
+                        try {
+                          await MoneyExchangeService.deleteTransaction(
+                              filteredDocs[index].id);
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                              Text(Strings.failedToDeletingTransaction),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                );
+            }
+          },
+          icon: const Icon(Icons.more_vert),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 1,
+              child: ListTile(
+                leading: Icon(Icons.edit, color: Colors.blue),
+                title: Text(Strings.edit),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 2,
+              child: ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text(Strings.delete),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => filteredDocs.length;
+
+  @override
+  int get selectedRowCount => 0;
+
+  // Sort method to apply sorting on the data source
+  void sort<T>(
+      Comparable<T> Function(DocumentSnapshot<Map<String, dynamic>> doc)
+      getField,
+      bool ascending) {
+    filteredDocs.sort((a, b) {
+      final aValue = getField(a);
+      final bValue = getField(b);
+      return ascending
+          ? Comparable.compare(aValue, bValue)
+          : Comparable.compare(bValue, aValue);
+    });
+    notifyListeners();
   }
 }

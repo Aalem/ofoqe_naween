@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -11,7 +10,6 @@ import 'package:ofoqe_naween/screens/ledger/add_to_ledger.dart';
 import 'package:ofoqe_naween/screens/login_page.dart';
 import 'package:ofoqe_naween/screens/money_exchange/pages/money_exchange_home.dart';
 import 'package:ofoqe_naween/theme/theme.dart';
-import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +64,7 @@ class MyApp extends StatelessWidget {
           '/home': (context) => HomePage(),
           '/login': (context) => LoginPage(),
           '/ledger': (context) => AddLedgerEntry(),
-          '/buys': (context) => Buys(),
+          '/buys': (context) => BuysPage(),
           '/money_exchange': (context) => MoneyExchangeHome(),
         },
       ),
