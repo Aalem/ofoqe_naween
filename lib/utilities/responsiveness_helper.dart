@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class ResponsiveHelper {
-  static List<Widget> genResponsiveTwoWidgets(
+  static List<Widget> genResponsiveWidgets(
       List<Widget> widgets, BuildContext context) {
-    return MediaQuery.of(context).size.width > 600
+    return ResponsiveBreakpoints.of(context).isDesktop
         ? [
             Row(
-              children: [
-                  Expanded(child: widgets.first),
-                Expanded(child: widgets.last),
-              ],
-            )
+              children: List.generate(
+                widgets.length,
+                (index) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      end: index == widgets.length - 1
+                          ? 0.0
+                          : 8.0, // No padding for the last widget
+                    ),
+                    child: widgets[index],
+                  ),
+                ),
+              ),
+            ),
           ]
         : widgets;
   }

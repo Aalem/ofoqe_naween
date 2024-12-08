@@ -148,4 +148,19 @@ class Strings{
   static const String hijriDateSuffix = 'شـ';
   static const String gregorianDateSuffix = 'مـ';
 
+  static const String addInvoice = 'اضافه نمودن انوایس خرید';
+  static const String chooseSupplier = 'انتخاب شرکت تولیدی';
+  static const String invoiceNumber = 'نمبر انوایس';
+  static const String notes = 'نوت';
+  static const String code = 'کد';
+  static const String quantity = 'تعداد';
+  static const String price = 'قیمت';
+  static const String discount = 'تخفیف';
+  static const String unitPriceAfterDiscount = 'قیمت پس از تخفیف';
+  static const String totalPrice = 'قیمت مجموعی';
+  static const String addPurchaseItem = 'اضافه نمودن جنس به انوایس';
+  static const String currency = 'واحد پولی';
+  static const String chooseCurrency = 'انتخاب واحد پولی';
+  static const String valueInUSD = 'نرخ ارز به دالر';
+
 }

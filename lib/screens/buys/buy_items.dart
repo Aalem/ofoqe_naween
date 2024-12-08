@@ -1,6 +1,7 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:provider/provider.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
@@ -9,21 +10,21 @@ import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_serv
 import 'package:ofoqe_naween/screens/money_exchange/providers/balance_provider.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
-class AddTransaction extends StatefulWidget {
+class BuyItems extends StatefulWidget {
   final String? id;
   final TransactionModel? transactionModel;
 
-  const AddTransaction({Key? key, this.id, this.transactionModel})
+  const BuyItems({Key? key, this.id, this.transactionModel})
       : super(key: key);
 
   @override
-  _AddTransactionState createState() => _AddTransactionState();
+  _BuyItemsState createState() => _BuyItemsState();
 }
 
-class _AddTransactionState extends State<AddTransaction> {
+class _BuyItemsState extends State<BuyItems> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool paymentError = false;

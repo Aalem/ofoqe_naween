@@ -16,6 +16,7 @@ class CustomTextFormField extends StatefulWidget {
   final bool canBeEmpty, displaySuffix;
   final int? minLength;
   final int? maxLength;
+  final int? maxLines;
   final String? regexPattern;
   final Map<String, String Function(String?)>? customValidators;
 
@@ -37,6 +38,7 @@ class CustomTextFormField extends StatefulWidget {
       this.canBeEmpty = true,
       this.minLength,
       this.maxLength,
+      this.maxLines,
       this.regexPattern,
       this.customValidators,
       this.displaySuffix = true});
@@ -217,6 +219,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         keyboardType: widget.keyboardType,
         inputFormatters: inputFormatters,
         focusNode: _focusNode,
+        maxLines: widget.maxLines??1,
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/screens/money_exchange/collection_fields/balance.dart';
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 
 class MoneyExchangeService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;

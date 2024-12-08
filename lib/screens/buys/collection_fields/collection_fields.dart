@@ -1,8 +1,9 @@
-class MoneyExchangeFields{
-  static const String credit = 'credit';
-  static const String debit  = 'debit';
-  static const String date  = 'date';
+class BuyFields{
+  static const String code = 'code';
+  static const String name  = 'name';
   static const String description  = 'description';
-  static const String gregorianDate  = 'gregorian_date';
-  static const String jalaliDate  = 'jalali_date';
+  static const String quantity  = 'quantity';
+  static const String price  = 'price';
+  static const String discount  = 'discount';
+  static const String priceAfterDiscount  = 'priceAfterDiscount';
 }

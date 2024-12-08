@@ -14,11 +14,12 @@ import 'package:ofoqe_naween/screens/money_exchange/collection_fields/collection
 import 'package:ofoqe_naween/screens/money_exchange/models/transaction_model.dart';
 import 'package:ofoqe_naween/screens/money_exchange/services/money_exchange_service.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
-import 'package:ofoqe_naween/theme/constants.dart';
+import 'package:ofoqe_naween/values/constants.dart';
 import 'package:ofoqe_naween/utilities/date_time_utils.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/utilities/screen_size.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
+import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class TransactionsPage extends StatefulWidget {
