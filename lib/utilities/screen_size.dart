@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ScreenSize {
+class pagesize {
   static double measureWidgetWidth(GlobalKey widgetKey) {
     RenderBox renderBox = widgetKey.currentContext!.findRenderObject() as RenderBox;
     return renderBox.size.width;

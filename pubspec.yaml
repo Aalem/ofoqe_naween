@@ -39,7 +39,7 @@ dependencies:
   firebase_core:
   firebase_auth:
   firebase_cloud_firestore:
-  font_awesome_flutter:
+  font_awesome_flutter: ^10.8.0
   provider:
   responsive_framework: ^1.4.0
   sidebarx: ^0.17.1

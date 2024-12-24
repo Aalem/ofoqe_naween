@@ -19,6 +19,6 @@ class AppColors{
   static Color errorColor = Colors.red.shade900;
   static Color appBarBG = Colors.grey.shade200;
   // static Color appBarBG = canvasColor;
-  static Color primaryColor = Colors.deepPurple;
+  static Color primary = Colors.deepPurple;
 
 }

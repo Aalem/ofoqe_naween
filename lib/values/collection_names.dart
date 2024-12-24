@@ -5,4 +5,5 @@ class CollectionNames{
   static const String balances = 'balances';
   static const String suppliers = 'suppliers';
   static const String currencies = 'currencies';
+  static const String products = 'products';
 }

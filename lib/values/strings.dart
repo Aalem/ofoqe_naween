@@ -3,6 +3,7 @@ class Strings{
   static const String ledger = 'دفتر کل';
   static const String inventory = 'گدام';
   static const String customers = 'مشتری ها';
+  static const String products = 'اجناس';
   static const String journal = 'روزنامچه';
   static const String moneyExchange = 'صرافی';
   static const String logout = 'خروج';
@@ -115,7 +116,7 @@ class Strings{
 
   // Suppliers
   static const String supplier = 'شرکت تولیدی';
-  static const String products = 'تولیدات';
+  static const String supplierProducts = 'تولیدات';
   static const String website = 'وبسایت';
   static const String addSupplierTitle = 'اضافه نمودن شرکت تولیدی';
   static const String enterSupplier = 'لطفاً نام شرکت را وارد کنید.';
@@ -162,5 +163,28 @@ class Strings{
   static const String currency = 'واحد پولی';
   static const String chooseCurrency = 'انتخاب واحد پولی';
   static const String valueInUSD = 'نرخ ارز به دالر';
+
+  //Products
+  static const String productsAndCategories = 'اجناس و دسته بندی ها';
+  static const String addProduct = 'اضافه نمودن جنس';
+  static const String productName = 'نام جنس';
+  static const String enterProductName = 'لطفاً نام جنس را وارد کنید';
+  static const String productCode = 'کد';
+  static const String enterProductCode = 'لطفاً کد جنس را وارد کنید';
+  static const String productWarranty = 'وارنتی یا تضمین';
+  static const String productBrand = 'برند';
+  static const String productModel = 'مدل';
+  static const String productDimension = 'ابعاد';
+  static const String productWeight = 'وزن به کیلو گرام';
+  static const String productUnit = 'واحد';
+  static const String enterProductUnit = 'لطفاً واحد جنس را وارد کنید';
+  static const String productColor = 'رنگ';
+  static const String productUpdatedSuccessfully = 'جنس مؤفقانه ویرایش شد';
+  static const String productAddedSuccessfully = 'جنس مؤفقانه اضافه شد';
+
+  // Product Categories
+  static const String categories = 'دسته بندی ها';
+  static const String addCategory = 'اضافه کردن دسته بندی';
+  static const String status = 'وضعیت';
 
 }

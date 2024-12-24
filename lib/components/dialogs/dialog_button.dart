@@ -10,14 +10,15 @@ class DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(8.0),
+      height: 55,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(vertical: 12  ),
           foregroundColor: Colors.white,
           backgroundColor: buttonType == ButtonType.positive ? Theme.of(context).primaryColor : Colors.redAccent,
-          textStyle: const TextStyle(fontSize: 18),
+          textStyle: const TextStyle(fontSize: 16),
         ),
         onPressed: onPressed,
         child: child ?? Text(title!),

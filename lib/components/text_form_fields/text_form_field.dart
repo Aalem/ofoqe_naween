@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -49,6 +50,7 @@ class CustomTextFormField extends StatefulWidget {
 
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
   final FocusNode _focusNode = FocusNode();
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -77,13 +79,23 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   }
 
   Widget clearIcon() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          widget.controller!.clear();
-        },
+    return ExcludeFocus(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: IconButton(
+            icon: Icon(
+              size: 18,
+              Icons.clear,
+              color: _isHovered ? Colors.red : Colors.grey,
+            ),
+            onPressed: () {
+              widget.controller!.clear();
+            },
+          ),
+        ),
       ),
     );
   }
