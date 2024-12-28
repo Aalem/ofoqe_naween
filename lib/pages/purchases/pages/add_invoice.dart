@@ -43,7 +43,8 @@ class _AddInvoicePageState extends State<AddInvoicePage> {
   void initState() {
     super.initState();
     _fetchSuppliers();
-    _currenciesFuture = CurrencyService.getCurrencies();
+    _currenciesFuture = CurrencyService().getDocuments(CurrencyService.fromMap);
+
   }
 
   Future<void> _fetchSuppliers() async {
