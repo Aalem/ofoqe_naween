@@ -36,9 +36,11 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
         address: '',
         company: '',
         email: '',
-        date: '',
         phone1: '',
         phone2: '',
+        id: '',
+        createdBy: '',
+        updatedBy: '',
       );
     }
   }
@@ -169,20 +171,20 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
       setState(() {
         _isLoading = true;
       });
-      final customerData = _customer.toMap();
       if (widget.id != null) {
-        await CustomerService.updateCustomer(widget.id!, customerData);
+        await CustomerService().updateDocument(widget.id!, _customer);
         NotificationService().showSuccess(
           context,
           Strings.customerUpdatedSuccessfully,
         );
       } else {
-        await CustomerService.addCustomer(customerData);
+        await CustomerService().addDocument(_customer);
         NotificationService()
             .showSuccess(context, Strings.customerAddedSuccessfully);
       }
       Navigator.pop(context);
     } on Exception catch (e) {
+      print('$e');
       setState(() {
         _isLoading = false;
       });

@@ -173,7 +173,7 @@ class _DataTableSource extends DataTableSource {
                     return AlertDialog(
                       title: const Text(Strings.editExchange),
                       content: AddExchange(
-                          exchangeModel: ExchangeModel.fromFirestore(
+                          exchangeModel: ExchangeModel.fromMap(
                               exchangeEntry, exchanges[index].id),
                           id: exchanges[index].id),
                     );

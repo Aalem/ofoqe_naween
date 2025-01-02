@@ -69,8 +69,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   }
 
   void _onFocusChange() {
+    print('_onFocusChange');
     if (!_focusNode.hasFocus) {
       if (widget.keyboardType == TextInputType.number) {
+        print('formatNumber');
         GeneralFormatter.formatNumber(widget.controller?.text ?? '');
       } else if (widget.keyboardType == TextInputType.phone) {
         GeneralFormatter.formatPhoneNumber(widget.controller?.text ?? '');

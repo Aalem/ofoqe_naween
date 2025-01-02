@@ -146,25 +146,26 @@ class _AddExchangeState extends State<AddExchange> {
         _isLoading = true;
       });
 
-      final ExchangeModel exchange = ExchangeModel(
+      final exchange = ExchangeModel(
+        id: widget.id ?? '', // If ID exists, update; otherwise, create a new one
         name: _name,
         phoneNumber1: _phoneNumber1,
         phoneNumber2: _phoneNumber2,
         address: _address,
-        id: widget.id ?? '',
       );
 
       if (widget.exchangeModel == null) {
-        await exchangeService.addExchange(exchange);
+        await ExchangeService().addDocument(exchange); // Add document
       } else {
-        await exchangeService.updateExchange(widget.id!, exchange.toMap());
+        await  ExchangeService().updateDocument(widget.id!, exchange); // Update document
       }
 
       NotificationService().showSuccess(
-          context,
-          widget.id == null
-              ? Strings.exchangeAddedSuccessfully
-              : Strings.exchangeUpdatedSuccessfully);
+        context,
+        widget.id == null
+            ? Strings.exchangeAddedSuccessfully
+            : Strings.exchangeUpdatedSuccessfully,
+      );
       Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -172,10 +173,12 @@ class _AddExchangeState extends State<AddExchange> {
       });
       print(e);
       NotificationService().showError(
-          context,
-          widget.id == null
-              ? Strings.errorAddingExchange
-              : Strings.errorUpdatingExchange);
+        context,
+        widget.id == null
+            ? Strings.errorAddingExchange
+            : Strings.errorUpdatingExchange,
+      );
     }
   }
+
 }

@@ -50,9 +50,10 @@ class MoneyExchangeService {
   static Future<void> addTransaction(
       TransactionModel transaction, MEPaymentType paymentType) async {
     try {
+      print('running transaction $transaction');
       await _firestore.runTransaction((txn) async {
         // Add the transaction within the transaction
-        await _addTransaction(txn, transaction);
+        _addTransaction(txn, transaction);
       });
 
       // First, update the exchange balance outside the Firestore transaction

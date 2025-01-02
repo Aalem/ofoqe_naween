@@ -1,25 +1,37 @@
-import 'package:ofoqe_naween/values/collection_fields/currencies_fields.dart';
+import 'package:ofoqe_naween/models/base_model.dart';
 
-class Currency {
-  final String id;
+class Currency extends BaseModel {
   final String name;
   final String symbol;
 
-  Currency({required this.name, required this.symbol, required this.id});
+  Currency({
+    required super.id,
+    required this.name,
+    required this.symbol,
+    required super.createdBy,
+    required super.updatedBy,
+    super.createdAt,
+    super.updatedAt,
+  });
 
+  // Factory method to convert Firestore map to Currency model
   factory Currency.fromMap(Map<String, dynamic> map, String id) {
     return Currency(
-      id: map[CurrencyFields.id] ?? '',
-      name: map[CurrencyFields.name] ?? '',
-      symbol: map[CurrencyFields.symbol] ?? '',
+      id: id ?? '',
+      name: map['name'] ?? '',
+      symbol: map['symbol'] ?? '',
+      createdBy: map['createdBy'] ?? '',
+      updatedBy: map['updatedBy'] ?? '',
+      createdAt: BaseModel.parseTimestamp(map, 'createdAt'),
+      updatedAt: BaseModel.parseTimestamp(map, 'updatedAt'),
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
-      CurrencyFields.id: id,
-      CurrencyFields.name: name,
-      CurrencyFields.symbol: symbol,
+      'name': name,
+      'symbol': symbol,
     };
   }
 }

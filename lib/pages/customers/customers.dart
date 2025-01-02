@@ -21,7 +21,7 @@ class CustomersPage extends StatefulWidget {
 }
 
 class _CustomersPageState extends State<CustomersPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
 
@@ -32,13 +32,6 @@ class _CustomersPageState extends State<CustomersPage> {
   @override
   void initState() {
     super.initState();
-  }
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers() {
-    return _firestore
-        .collection(CollectionNames.customers)
-        .orderBy(CustomerFields.name, descending: true)
-        .snapshots();
   }
 
   void _search() {
@@ -59,8 +52,8 @@ class _CustomersPageState extends State<CustomersPage> {
 
       // Sort the filtered docs
       docs.sort((a, b) {
-        final fieldA = getField(Customer.fromMap(a.data()));
-        final fieldB = getField(Customer.fromMap(b.data()));
+        final fieldA = getField(Customer.fromMap(a.data(), a.id));
+        final fieldB = getField(Customer.fromMap(b.data(), a.id));
 
         return ascending
             ? Comparable.compare(fieldA, fieldB)
@@ -152,7 +145,8 @@ class _CustomersPageState extends State<CustomersPage> {
         title: const Text(Strings.customers),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _getCustomers(),
+        // stream: _getCustomers(),
+        stream: CustomerService().getDocumentsStream(CollectionNames.customers),
         builder: (context, snapshot) {
           if (_updateTriggered) {
             if (snapshot.data != null) {
@@ -222,7 +216,7 @@ class CustomerDataSource extends DataTableSource {
     if (index >= customers.length) {
       return const DataRow(cells: []);
     }
-    final customerEntry = Customer.fromMap(customers[index].data());
+    final customerEntry = Customer.fromMap(customers[index].data(), customers[index].id);
     return DataRow(
       cells: [
         DataCell(Text((index + 1).toString())),
@@ -258,7 +252,7 @@ class CustomerDataSource extends DataTableSource {
                         message: Strings.customerDeleteMessage,
                         onConfirm: () async {
                           try {
-                            await CustomerService.deleteCustomer(
+                            await CustomerService().deleteDocument(
                                 customers[index].id);
                             Navigator.of(context).pop();
                           } catch (e) {

@@ -1,17 +1,18 @@
+import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
 
 abstract class BaseModel {
-  final String id;
-  final String createdBy;
-  final String updatedBy;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String? id;
+  final String? createdBy;
+  final String? updatedBy;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   BaseModel({
-    required this.id,
-    required this.createdBy,
-    required this.updatedBy,
-    required this.createdAt,
-    required this.updatedAt,
+     this.id,
+     this.createdBy,
+     this.updatedBy,
+     this.createdAt,
+     this.updatedAt,
   });
 
   // Factory method to convert Firestore map to model instance
@@ -25,8 +26,19 @@ abstract class BaseModel {
       'id': id,
       'createdBy': createdBy,
       'updatedBy': updatedBy,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
+  }
+
+  // Handle the case where createdAt or updatedAt might be missing or null
+  static DateTime? parseTimestamp(Map<String, dynamic> map, String fieldName) {
+    if (map[fieldName] == null) {
+      return null; // Return null if the timestamp is missing
+    }
+    // Parse the timestamp from Firestore into a DateTime object
+    return (map[fieldName] is Timestamp)
+        ? (map[fieldName] as Timestamp).toDate()
+        : DateTime.tryParse(map[fieldName].toString());
   }
 }
