@@ -1,7 +1,9 @@
 import 'package:dari_datetime_picker/dari_datetime_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:ofoqe_naween/models/currency.dart';
 import 'package:ofoqe_naween/pages/money_exchange/models/exchange_model.dart';
 import 'package:ofoqe_naween/pages/money_exchange/services/exchange_service.dart';
+import 'package:ofoqe_naween/services/firebase/currency_service.dart';
 import 'package:ofoqe_naween/utilities/formatter.dart';
 import 'package:ofoqe_naween/values/enums/enums.dart';
 import 'package:provider/provider.dart';
@@ -86,7 +88,7 @@ class _AddTransactionState extends State<AddTransaction> {
 
   Future<void> _fetchExchanges() async {
     try {
-      _exchanges = await ExchangeService().getExchanges();
+      _exchanges = await ExchangeService().getDocuments(ExchangeService.fromMap);
 
       if (widget.transactionModel != null) {
         _selectedExchange = _exchanges.firstWhere(
@@ -176,7 +178,7 @@ class _AddTransactionState extends State<AddTransaction> {
         onChanged: (ExchangeModel? newValue) {
           setState(() {
             _selectedExchange = newValue;
-            _fetchCurrentBalance(_selectedExchange!.id);
+            _fetchCurrentBalance(_selectedExchange!.id!);
           });
         },
         items: _exchanges.map((ExchangeModel exchange) {

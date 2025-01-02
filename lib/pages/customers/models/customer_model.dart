@@ -9,15 +9,15 @@ class Customer extends BaseModel {
   late String address;
 
   Customer({
-    required super.id,
+    super.id,
     required this.name,
     required this.company,
     required this.email,
     required this.phone1,
     required this.phone2,
     required this.address,
-    required super.createdBy,
-    required super.updatedBy,
+    super.createdBy,
+    super.updatedBy,
     super.createdAt,
     super.updatedAt,
   });
@@ -43,7 +43,6 @@ class Customer extends BaseModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      ...super.toMap(),
       'name': name,
       'company': company,
       'email': email,

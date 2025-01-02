@@ -30,7 +30,6 @@ class Currency extends BaseModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      ...super.toMap(),
       'name': name,
       'symbol': symbol,
     };

@@ -1,8 +1,8 @@
 
 import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
+import 'package:ofoqe_naween/models/base_model.dart';
 
-class TransactionModel {
-  final String id;
+class TransactionModel extends BaseModel{
   final String jalaliDate;
   final DateTime gregorianDate;
   final DateTime date;
@@ -11,7 +11,11 @@ class TransactionModel {
   final double credit;
 
   TransactionModel({
-    required this.id,
+    super.id,
+    super.createdAt,
+    super.createdBy,
+    super.updatedAt,
+    super.updatedBy,
     required this.jalaliDate,
     required this.gregorianDate,
     required this.date,
@@ -29,9 +33,14 @@ class TransactionModel {
       description: data['description'],
       debit: data['debit'].toDouble(),
       credit: data['credit'].toDouble(),
+      createdBy: data['createdBy'] ?? '',
+      updatedBy: data['updatedBy'] ?? '',
+      createdAt: BaseModel.parseTimestamp(data, 'createdAt') ?? DateTime.now(),
+      updatedAt: BaseModel.parseTimestamp(data, 'updatedAt') ?? DateTime.now(),
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'jalali_date': jalaliDate,

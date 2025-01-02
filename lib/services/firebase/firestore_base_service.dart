@@ -54,6 +54,10 @@ abstract class FirestoreBaseService<T extends BaseModel> {
     }
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> getDocumentsStream(String collectionName) {
+    return _firestore.collection(collectionName).snapshots();
+  }
+
   /// Fetch a single document by ID
   Future<T?> getDocumentById(String id,
       T Function(Map<String, dynamic> map, String id) fromMap) async {

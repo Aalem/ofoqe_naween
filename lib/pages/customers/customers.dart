@@ -21,7 +21,7 @@ class CustomersPage extends StatefulWidget {
 }
 
 class _CustomersPageState extends State<CustomersPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 11;
   final TextEditingController _searchController = TextEditingController();
 
@@ -32,13 +32,6 @@ class _CustomersPageState extends State<CustomersPage> {
   @override
   void initState() {
     super.initState();
-  }
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers() {
-    return _firestore
-        .collection(CollectionNames.customers)
-        .orderBy(CustomerFields.name, descending: true)
-        .snapshots();
   }
 
   void _search() {
@@ -152,7 +145,8 @@ class _CustomersPageState extends State<CustomersPage> {
         title: const Text(Strings.customers),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _getCustomers(),
+        // stream: _getCustomers(),
+        stream: CustomerService().getDocumentsStream(CollectionNames.customers),
         builder: (context, snapshot) {
           if (_updateTriggered) {
             if (snapshot.data != null) {
