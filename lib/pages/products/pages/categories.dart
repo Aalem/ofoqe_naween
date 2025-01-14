@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
-import 'package:ofoqe_naween/pages/money_exchange/collection_fields/collection_fields.dart';
 import 'package:ofoqe_naween/pages/products/collection_fields/category_fields.dart';
 import 'package:ofoqe_naween/pages/products/models/category.dart';
 import 'package:ofoqe_naween/pages/products/pages/add_category.dart';
 import 'package:ofoqe_naween/pages/products/services/category_service.dart';
-import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class CategoriesPage extends StatefulWidget {
@@ -18,7 +16,6 @@ class CategoriesPage extends StatefulWidget {
 }
 
 class _CategoriesPageState extends State<CategoriesPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int _pageSize = 10;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _horizontalScrollController = ScrollController();
@@ -48,18 +45,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
       descending: true, // Optional sorting order
     );
 
-    Query<Map<String, dynamic>> query =
-        _firestore.collection(CollectionNames.exchanges);
-
-    if (_searchController.text.isNotEmpty) {
-      query = query
-          .where(ExchangeFields.name,
-              isGreaterThanOrEqualTo: _searchController.text)
-          .where(ExchangeFields.name,
-              isLessThanOrEqualTo: _searchController.text + '\uf8ff');
-    }
-
-    return query.snapshots();
   }
 
   Widget _buildPaginatedDataTable(

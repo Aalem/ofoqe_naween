@@ -527,7 +527,7 @@ class _AddTransactionState extends State<AddTransaction> {
         exchangeId: _selectedExchange?.id ?? '',
         exchangeName: _selectedExchange?.name ?? '',
       );
-
+      Navigator.pop(context);
       if (widget.transactionModel == null) {
         await MoneyExchangeService.addTransaction(
             transaction, _selectedPaymentType!);
@@ -537,18 +537,15 @@ class _AddTransactionState extends State<AddTransaction> {
       }
 
       NotificationService().showSuccess(
-          context,
           widget.id == null
               ? Strings.transactionAddedSuccessfully
               : Strings.transactionUpdatedSuccessfully);
-      Navigator.pop(context);
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
       print('error $e');
       NotificationService().showError(
-          context,
           widget.id == null
               ? Strings.errorAddingTransaction
               : Strings.errorUpdatingTransaction);

@@ -15,6 +15,7 @@ import 'package:ofoqe_naween/values/strings.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -35,6 +36,8 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
 }
 
 class MyApp extends StatelessWidget {
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
   const MyApp({super.key});
 
   @override
@@ -42,6 +45,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider<NavigationProvider>(
       create: (context) => NavigationProvider(),
       child: MaterialApp(
+        scaffoldMessengerKey: scaffoldMessengerKey,
         scrollBehavior:
             pagesize.isDesktop(context) ? MyCustomScrollBehavior() : null,
         builder: (context, child) => ResponsiveBreakpoints.builder(

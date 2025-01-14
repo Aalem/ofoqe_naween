@@ -153,7 +153,7 @@ class _AddExchangeState extends State<AddExchange> {
         phoneNumber2: _phoneNumber2,
         address: _address,
       );
-
+      Navigator.pop(context);
       if (widget.exchangeModel == null) {
         await ExchangeService().addDocument(exchange); // Add document
       } else {
@@ -161,19 +161,16 @@ class _AddExchangeState extends State<AddExchange> {
       }
 
       NotificationService().showSuccess(
-        context,
         widget.id == null
             ? Strings.exchangeAddedSuccessfully
             : Strings.exchangeUpdatedSuccessfully,
       );
-      Navigator.pop(context);
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
       print(e);
       NotificationService().showError(
-        context,
         widget.id == null
             ? Strings.errorAddingExchange
             : Strings.errorUpdatingExchange,

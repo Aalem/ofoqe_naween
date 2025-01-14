@@ -171,32 +171,30 @@ class _NewCustomerPageState extends State<NewCustomerPage> {
       setState(() {
         _isLoading = true;
       });
+      Navigator.pop(context);
       if (widget.id != null) {
         await CustomerService().updateDocument(widget.id!, _customer);
         NotificationService().showSuccess(
-          context,
           Strings.customerUpdatedSuccessfully,
         );
       } else {
         await CustomerService().addDocument(_customer);
         NotificationService()
-            .showSuccess(context, Strings.customerAddedSuccessfully);
+            .showSuccess(Strings.customerAddedSuccessfully);
       }
-      Navigator.pop(context);
     } on Exception catch (e) {
       print('$e');
       setState(() {
         _isLoading = false;
       });
       NotificationService().showError(
-        context,
         widget.id != null
             ? Strings.errorUpdatingCustomer
             : Strings.errorAddingCustomer,
       );
     } catch (e) {
       print(e.toString());
-      NotificationService().showSuccess(context, Strings.anErrorOccurred);
+      NotificationService().showSuccess( Strings.anErrorOccurred);
     }
   }
 }

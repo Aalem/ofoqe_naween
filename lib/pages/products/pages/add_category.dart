@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
 import 'package:ofoqe_naween/pages/products/services/category_service.dart';
-import 'package:ofoqe_naween/pages/products/services/product_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
 import 'package:ofoqe_naween/values/enums/enums.dart';
@@ -31,7 +30,6 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     if (widget.category != null) {
       _category = widget.category!;
     } else {
-      
       _category = CategoryModel();
     }
   }
@@ -60,7 +58,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                 ),
                 CustomTextFormField(
                   enabled: !_isLoading,
-                  controller: TextEditingController(text: _category.description),
+                  controller:
+                      TextEditingController(text: _category.description),
                   label: Strings.description,
                   onSaved: (value) => _category.description = value!,
                 ),
@@ -123,6 +122,7 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
       ),
     );
   }
+
   Future<void> _saveProductToFirestore() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -132,21 +132,18 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     });
 
     try {
-      final categoryData = _category.toMap();
-
+      Navigator.pop(context);
       if (widget.id != null) {
         // Update existing product
-        await CategoryService().updateDocument (widget.id!, _category);
-        NotificationService().showSuccess(context, Strings.categoryUpdatedSuccessfully);
+        await CategoryService().updateDocument(widget.id!, _category);
+        NotificationService().showSuccess(Strings.categoryUpdatedSuccessfully);
       } else {
         // Add new product
         await CategoryService().addDocument(_category);
-        NotificationService().showSuccess(context, Strings.categoryAddedSuccessfully);
+        NotificationService().showSuccess(Strings.categoryAddedSuccessfully);
       }
-
-      Navigator.pop(context);
     } catch (e) {
-      NotificationService().showSuccess(context, Strings.anErrorOccurred);
+      NotificationService().showSuccess(Strings.anErrorOccurred);
       setState(() {
         _isLoading = false;
       });

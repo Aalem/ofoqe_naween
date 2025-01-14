@@ -58,7 +58,9 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
               CustomTextFormField(
                 enabled: !_isLoading,
                 label: Strings.supplier,
-                controller: TextEditingController(text: _supplier.name,),
+                controller: TextEditingController(
+                  text: _supplier.name,
+                ),
                 validationMessage: Strings.enterSupplier,
                 onSaved: (value) => _supplier.name = value!,
               ),
@@ -114,8 +116,6 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                   onSaved: (value) => _supplier.website = value!,
                 ),
               ], context),
-
-
               const SizedBox(height: 20.0),
               Row(
                 children: [
@@ -144,8 +144,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title:
-                                      const Text(Strings.dialogCancelTitle),
+                                  title: const Text(Strings.dialogCancelTitle),
                                   content:
                                       const Text(Strings.dialogCancelMessage),
                                   actions: [
@@ -181,31 +180,28 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
         _isLoading = true;
       });
       final supplierData = _supplier.toMap();
+      Navigator.pop(context);
       if (widget.id != null) {
         await SupplierService.updateSupplier(widget.id!, supplierData);
         NotificationService().showSuccess(
-          context,
           Strings.supplierUpdatedSuccessfully,
         );
       } else {
         await SupplierService.addSupplier(supplierData);
-        NotificationService()
-            .showSuccess(context, Strings.supplierAddedSuccessfully);
+        NotificationService().showSuccess(Strings.supplierAddedSuccessfully);
       }
-      Navigator.pop(context);
     } on Exception catch (e) {
       setState(() {
         _isLoading = false;
       });
       NotificationService().showError(
-        context,
         widget.id != null
             ? Strings.errorUpdatingSupplier
             : Strings.errorAddingSupplier,
       );
     } catch (e) {
       print(e.toString());
-      NotificationService().showSuccess(context, Strings.anErrorOccurred);
+      NotificationService().showSuccess(Strings.anErrorOccurred);
     }
   }
 }

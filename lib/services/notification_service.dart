@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ofoqe_naween/main.dart';
 
 class NotificationService {
   // Private constructor
@@ -10,19 +11,19 @@ class NotificationService {
   // Getter for the singleton instance
   factory NotificationService() => _instance;
 
-  void showSuccess(BuildContext context, String message) {
+  void showSuccess(String message) {
     final snackBar = SnackBar(
       content: Text(message, textDirection: TextDirection.rtl),
       backgroundColor: Colors.green,
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    MyApp.scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
   }
 
-  void showError(BuildContext context, String message) {
+  void showError(String message) {
     final snackBar = SnackBar(
       content: Text(message, textDirection: TextDirection.rtl),
       backgroundColor: Colors.red,
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    MyApp.scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
   }
 }

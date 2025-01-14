@@ -207,20 +207,18 @@ class _AddProductPageState extends State<AddProductPage> {
 
     try {
       final productData = _product.toMap();
-
+      Navigator.pop(context);
       if (widget.id != null) {
         // Update existing product
         await ProductService.updateProduct(widget.id!, productData);
-        NotificationService().showSuccess(context, Strings.productUpdatedSuccessfully);
+        NotificationService().showSuccess(Strings.productUpdatedSuccessfully);
       } else {
         // Add new product
         await ProductService.addProduct(productData);
-        NotificationService().showSuccess(context, Strings.productAddedSuccessfully);
+        NotificationService().showSuccess(Strings.productAddedSuccessfully);
       }
-
-      Navigator.pop(context);
     } catch (e) {
-      NotificationService().showSuccess(context, Strings.anErrorOccurred);
+      NotificationService().showSuccess(Strings.anErrorOccurred);
       setState(() {
         _isLoading = false;
       });
