@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
-import 'package:ofoqe_naween/pages/money_exchange/models/exchange_model.dart';
-import 'package:ofoqe_naween/pages/money_exchange/pages/add_exchange.dart';
 import 'package:ofoqe_naween/pages/money_exchange/collection_fields/collection_fields.dart';
-import 'package:ofoqe_naween/pages/money_exchange/services/money_exchange_service.dart';
+import 'package:ofoqe_naween/pages/products/collection_fields/category_fields.dart';
+import 'package:ofoqe_naween/pages/products/models/category.dart';
+import 'package:ofoqe_naween/pages/products/pages/add_category.dart';
+import 'package:ofoqe_naween/pages/products/services/category_service.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
@@ -28,7 +29,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   @override
   void initState() {
     super.initState();
-    _exchangeStream = _getExchanges();
+    _exchangeStream = _getCategories();
   }
 
   @override
@@ -38,16 +39,24 @@ class _CategoriesPageState extends State<CategoriesPage> {
     super.dispose();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getExchanges() {
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getCategories() {
+    return CategoryService().getDocumentsStreamWithFilters(
+      // filters: {'name': _searchController.text, 'parentId': null},
+      // searchField: 'name', // Field to search
+      // searchValue: _searchController.text, // Search value
+      orderByField: 'name', // Optional sorting
+      descending: true, // Optional sorting order
+    );
+
     Query<Map<String, dynamic>> query =
-    _firestore.collection(CollectionNames.exchanges);
+        _firestore.collection(CollectionNames.exchanges);
 
     if (_searchController.text.isNotEmpty) {
       query = query
           .where(ExchangeFields.name,
-          isGreaterThanOrEqualTo: _searchController.text)
+              isGreaterThanOrEqualTo: _searchController.text)
           .where(ExchangeFields.name,
-          isLessThanOrEqualTo: _searchController.text + '\uf8ff');
+              isLessThanOrEqualTo: _searchController.text + '\uf8ff');
     }
 
     return query.snapshots();
@@ -83,14 +92,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 columnSpacing: 20,
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.exchangeName)),
-                  DataColumn(label: Text(Strings.address)),
-                  DataColumn(label: Text(Strings.phoneNumbers)),
+                  DataColumn(label: Text(Strings.categoryName)),
+                  DataColumn(label: Text(Strings.description)),
                   DataColumn(label: Text(Strings.actions)),
                 ],
                 source: _DataTableSource(
                   context: context,
-                  exchanges: filteredDocs,
+                  categories: filteredDocs,
                   numberOffset: (number - 1) * _rowsPerPage,
                 ),
               )));
@@ -110,7 +118,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             builder: (BuildContext context) {
               return const AlertDialog(
                 title: Text(Strings.addCategory),
-                content: AddExchange(),
+                content: AddCategoryPage(),
               );
             },
           );
@@ -128,7 +136,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(child: _buildPaginatedDataTable(snapshot.data!));
+          return SingleChildScrollView(
+              child: _buildPaginatedDataTable(snapshot.data!));
         },
       ),
     );
@@ -137,31 +146,24 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
 class _DataTableSource extends DataTableSource {
   final BuildContext context;
-  final List<QueryDocumentSnapshot<Map<String, dynamic>>> exchanges;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> categories;
   final int numberOffset;
 
   _DataTableSource({
     required this.context,
-    required this.exchanges,
+    required this.categories,
     required this.numberOffset,
   });
 
   @override
   DataRow getRow(int index) {
-    final exchangeEntry = exchanges[index].data();
+    final categoryEntry = categories[index].data();
     int number = numberOffset + index + 1;
 
     return DataRow(cells: [
       DataCell(Text(number.toString())),
-      DataCell(Text(exchangeEntry[ExchangeFields.name] ?? '')),
-      DataCell(Text(exchangeEntry[ExchangeFields.address] ?? '')),
-      DataCell(
-        Text(
-          '${exchangeEntry[ExchangeFields.phone1] ?? ''} '
-              '${exchangeEntry[ExchangeFields.phone2].isNotEmpty ? '\n${exchangeEntry[ExchangeFields.phone2]}' : ''}',
-          textDirection: TextDirection.ltr,
-        ),
-      ),
+      DataCell(Text(categoryEntry[CategoryFields.name] ?? '')),
+      DataCell(Text(categoryEntry[CategoryFields.description] ?? '')),
       DataCell(
         PopupMenuButton<int>(
           onSelected: (i) {
@@ -172,10 +174,10 @@ class _DataTableSource extends DataTableSource {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text(Strings.editExchange),
-                      content: AddExchange(
-                          exchangeModel: ExchangeModel.fromMap(
-                              exchangeEntry, exchanges[index].id),
-                          id: exchanges[index].id),
+                      content: AddCategoryPage(
+                          category: CategoryModel.fromMap(categoryEntry,
+                              id: categories[index].id),
+                          id: categories[index].id),
                     );
                   },
                 );
@@ -185,9 +187,9 @@ class _DataTableSource extends DataTableSource {
                   context: context,
                   builder: (BuildContext context) {
                     return ConfirmationDialog(
-                      title: Strings.deleteExchange +
-                          (exchangeEntry[ExchangeFields.name] ?? ''),
-                      message: Strings.deleteExchangeMessage,
+                      title: Strings.deleteCategory +
+                          (categoryEntry[CategoryFields.name] ?? ''),
+                      message: Strings.categoryDeleteMessage,
                       onConfirm: () async {
                         // Save the scaffold messenger context
                         final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -197,27 +199,22 @@ class _DataTableSource extends DataTableSource {
 
                         try {
                           // Attempt to delete the exchange
-                          await MoneyExchangeService.deleteExchange(
-                              exchanges[index].id);
+                          await CategoryService().deleteDocument(
+                              categories[index].id);
 
                           // If successful, show a success message
                           scaffoldMessenger.showSnackBar(
                             const SnackBar(
                               content:
-                              Text(Strings.exchangeDeletedSuccessfully),
+                                  Text(Strings.categoryDeletedSuccessfully),
                               backgroundColor: Colors.green,
                             ),
                           );
                         } catch (e) {
                           // Handle any error (like related transactions) and show a SnackBar
                           scaffoldMessenger.showSnackBar(
-                            SnackBar(
-                              content: Text(e
-                                  .toString()
-                                  .contains('related to this exchange')
-                                  ? Strings
-                                  .failedToDeleteDueToRelatedTransactions
-                                  : Strings.failedToDeletingTransaction),
+                            const SnackBar(
+                              content: Text(Strings.failedToDeleteCategory),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -251,7 +248,7 @@ class _DataTableSource extends DataTableSource {
   }
 
   @override
-  int get rowCount => exchanges.length;
+  int get rowCount => categories.length;
 
   @override
   bool get isRowCountApproximate => false;

@@ -185,6 +185,13 @@ class Strings{
   // Product Categories
   static const String categories = 'دسته بندی ها';
   static const String addCategory = 'اضافه کردن دسته بندی';
+  static const String deleteCategory = 'حذف دسته بندی: ';
+  static const String categoryDeleteMessage = 'آیا مطمئن هستید میخواهیید این دسته بندی را حذف کنید؟';
   static const String status = 'وضعیت';
+  static const String categoryName = 'دسته بندی';
+  static const String categoryUpdatedSuccessfully = 'دسته بندی مؤفقانه ویرایش شد';
+  static const String categoryAddedSuccessfully = 'دسته بندی مؤفقانه اضافه شد';
+  static const String categoryDeletedSuccessfully = 'دسته بندی مؤفقانه حذف شد';
+  static const String failedToDeleteCategory = 'خطا در حذف دسته بندی';
 
 }

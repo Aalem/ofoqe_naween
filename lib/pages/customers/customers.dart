@@ -146,7 +146,7 @@ class _CustomersPageState extends State<CustomersPage> {
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         // stream: _getCustomers(),
-        stream: CustomerService().getDocumentsStream(CollectionNames.customers),
+        stream: CustomerService().getDocumentsStream(),
         builder: (context, snapshot) {
           if (_updateTriggered) {
             if (snapshot.data != null) {

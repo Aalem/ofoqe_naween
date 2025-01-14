@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/components/nothing_found.dart';
 import 'package:ofoqe_naween/pages/customers/add_customer.dart';
 import 'package:ofoqe_naween/pages/customers/collection_fields/customer_fields.dart';
