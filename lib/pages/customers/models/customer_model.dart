@@ -9,7 +9,7 @@ class Customer extends BaseModel {
   late String address;
 
   Customer({
-    super.id,
+    super.id,  // This will call the constructor of BaseModel
     required this.name,
     required this.company,
     required this.email,
@@ -22,7 +22,7 @@ class Customer extends BaseModel {
     super.updatedAt,
   });
 
-  // Factory constructor to create a Customer object from a Map
+  // Factory constructor
   factory Customer.fromMap(Map<String, dynamic> map, String id) {
     return Customer(
       id: id,

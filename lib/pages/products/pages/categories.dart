@@ -161,7 +161,7 @@ class _DataTableSource extends DataTableSource {
                       title: const Text(Strings.editExchange),
                       content: AddCategoryPage(
                           category: CategoryModel.fromMap(categoryEntry,
-                              id: categories[index].id),
+                              categories[index].id),
                           id: categories[index].id),
                     );
                   },

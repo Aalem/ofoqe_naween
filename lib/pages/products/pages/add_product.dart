@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ofoqe_naween/components/dialogs/dialog_button.dart';
 import 'package:ofoqe_naween/components/text_form_fields/text_form_field.dart';
+import 'package:ofoqe_naween/pages/products/models/category.dart';
 import 'package:ofoqe_naween/pages/products/models/product.dart';
+import 'package:ofoqe_naween/pages/products/services/category_service.dart';
 import 'package:ofoqe_naween/pages/products/services/product_service.dart';
 import 'package:ofoqe_naween/services/notification_service.dart';
 import 'package:ofoqe_naween/utilities/responsiveness_helper.dart';
@@ -21,7 +23,8 @@ class AddProductPage extends StatefulWidget {
 class _AddProductPageState extends State<AddProductPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
+  CategoryModel? _selectedCategory;
+  List<CategoryModel>? categories;
   late Product _product;
 
   @override
@@ -30,25 +33,56 @@ class _AddProductPageState extends State<AddProductPage> {
     if (widget.product != null) {
       _product = widget.product!;
     } else {
-      
-      _product = Product(
-        productId: '',
-        name: '',
-        code: '',
-        categoryId: '',
-        createdBy: '',
-        createdAt: DateTime.now(),
-        unit: '',
-        description: '',
-        warranty: '',
-        brand: '',
-        model: '',
-        dimension: '',
-        weight: 0.0,
-        updatedAt: DateTime.now(),
-        color: '',
-      );
+      _product = Product();
     }
+  }
+
+  Widget buildCategorySelection() {
+    return StreamBuilder<List<CategoryModel>>(
+      stream: CategoryService().getDocumentsStream().map((snapshot) => snapshot
+          .docs
+          .map((doc) => CategoryModel.fromMap(doc.data(), doc.id))
+          .toList()),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No categories available.'));
+        }
+
+        final categories = snapshot.data!;
+
+        // Preselect the category if editing a product
+        if (widget.product != null && _selectedCategory == null) {
+          _selectedCategory = categories.firstWhere(
+              (category) => category.id == widget.product?.categoryId);
+        }
+
+        return DropdownButtonFormField<CategoryModel>(
+          value: _selectedCategory,
+          items: categories.map((category) {
+            return DropdownMenuItem<CategoryModel>(
+              value: category,
+              child: Text(
+                category.name!,
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }).toList(),
+          onChanged: (CategoryModel? newCategory) {
+            setState(() {
+              _selectedCategory = newCategory;
+            });
+          },
+          decoration: const InputDecoration(
+            labelText: Strings.chooseCategory,
+            border: OutlineInputBorder(),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -79,6 +113,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   label: Strings.productCode,
                   onSaved: (value) => _product.code = value!,
                 ),
+                buildCategorySelection(),
               ], context),
               CustomTextFormField(
                 enabled: !_isLoading,
@@ -88,7 +123,6 @@ class _AddProductPageState extends State<AddProductPage> {
                 maxLines: 2,
               ),
               ...ResponsiveHelper.genResponsiveWidgets([
-
                 CustomTextFormField(
                   enabled: !_isLoading,
                   controller: TextEditingController(text: _product.brand),
@@ -197,6 +231,7 @@ class _AddProductPageState extends State<AddProductPage> {
       ),
     );
   }
+
   Future<void> _saveProductToFirestore() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -206,15 +241,15 @@ class _AddProductPageState extends State<AddProductPage> {
     });
 
     try {
-      final productData = _product.toMap();
+      _product.categoryId = _selectedCategory!.id;
       Navigator.pop(context);
       if (widget.id != null) {
         // Update existing product
-        await ProductService.updateProduct(widget.id!, productData);
+        await ProductService().updateDocument(widget.id!, _product);
         NotificationService().showSuccess(Strings.productUpdatedSuccessfully);
       } else {
         // Add new product
-        await ProductService.addProduct(productData);
+        await ProductService().addDocument(_product);
         NotificationService().showSuccess(Strings.productAddedSuccessfully);
       }
     } catch (e) {
