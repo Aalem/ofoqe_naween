@@ -6,6 +6,7 @@ import 'package:ofoqe_naween/pages/customers/add_customer.dart';
 import 'package:ofoqe_naween/pages/customers/collection_fields/customer_fields.dart';
 import 'package:ofoqe_naween/pages/customers/services/customer_service.dart';
 import 'package:ofoqe_naween/pages/customers/models/customer_model.dart';
+import 'package:ofoqe_naween/pages/products/models/category.dart';
 import 'package:ofoqe_naween/pages/products/pages/add_product.dart';
 import 'package:ofoqe_naween/theme/colors.dart';
 import 'package:ofoqe_naween/values/collection_names.dart';

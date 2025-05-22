@@ -193,5 +193,7 @@ class Strings{
   static const String categoryAddedSuccessfully = 'دسته بندی مؤفقانه اضافه شد';
   static const String categoryDeletedSuccessfully = 'دسته بندی مؤفقانه حذف شد';
   static const String failedToDeleteCategory = 'خطا در حذف دسته بندی';
+  static const String chooseCategory = 'انتخاب دسته بندی';
+
 
 }

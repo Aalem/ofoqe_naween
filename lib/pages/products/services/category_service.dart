@@ -7,6 +7,6 @@ class CategoryService extends FirestoreBaseService<CategoryModel> {
 
   /// Factory method to handle Customer-specific logic
   static CategoryModel fromMap(Map<String, dynamic> map, String id) {
-    return CategoryModel.fromMap(map, id: id);
+    return CategoryModel.fromMap(map, id);
   }
 }
