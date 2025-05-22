@@ -37,33 +37,40 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width > 600
-          ? MediaQuery.of(context).size.width / 2
-          : MediaQuery.of(context).size.width / 1,
+      width: MediaQuery
+          .of(context)
+          .size
+          .width > 600
+          ? MediaQuery
+          .of(context)
+          .size
+          .width / 2
+          : MediaQuery
+          .of(context)
+          .size
+          .width / 1,
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...ResponsiveHelper.genResponsiveWidgets([
-                CustomTextFormField(
-                  enabled: !_isLoading,
-                  label: Strings.categoryName,
-                  controller: TextEditingController(
-                    text: _category.name,
-                  ),
-                  validationMessage: Strings.enterProductName,
-                  onSaved: (value) => _category.name = value!,
+              CustomTextFormField(
+                enabled: !_isLoading,
+                label: Strings.categoryName,
+                controller: TextEditingController(
+                  text: _category.name,
                 ),
-                CustomTextFormField(
-                  enabled: !_isLoading,
-                  controller:
-                      TextEditingController(text: _category.description),
-                  label: Strings.description,
-                  onSaved: (value) => _category.description = value!,
-                ),
-              ], context),
+                validationMessage: Strings.enterProductName,
+                onSaved: (value) => _category.name = value!,
+              ),
+              CustomTextFormField(
+                enabled: !_isLoading,
+                controller:
+                TextEditingController(text: _category.description),
+                label: Strings.description,
+                onSaved: (value) => _category.description = value!,
+              ),
               const SizedBox(height: 20.0),
               Row(
                 children: [
@@ -74,46 +81,46 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                       onPressed: _isLoading
                           ? null
                           : () async {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                // Implement save logic here
-                                _saveProductToFirestore();
-                              }
-                            },
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          // Implement save logic here
+                          _saveProductToFirestore();
+                        }
+                      },
                     ),
                   ),
                   Expanded(
                       child: DialogButton(
-                    title: Strings.cancel,
-                    buttonType: ButtonType.negative,
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text(Strings.dialogCancelTitle),
-                                  content:
-                                      const Text(Strings.dialogCancelMessage),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text(Strings.yes),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text(Strings.no),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                  )),
+                        title: Strings.cancel,
+                        buttonType: ButtonType.negative,
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text(Strings.dialogCancelTitle),
+                                content:
+                                const Text(Strings.dialogCancelMessage),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text(Strings.yes),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(Strings.no),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      )),
                 ],
               ),
             ],
