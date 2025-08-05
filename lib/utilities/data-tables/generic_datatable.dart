@@ -66,63 +66,84 @@ class _GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
   void _search(QuerySnapshot<Map<String, dynamic>> snapshot) {
     setState(() {
-      _filteredDocs = null;
+      _filteredDocs = getFilteredDocs(snapshot);
     });
   }
 
-  void _sort(int columnIndex, bool ascending, QuerySnapshot<Map<String, dynamic>> snapshot) {
-    if (!widget.enableSort || columnIndex >= widget.sortFields.length) return;
+  void _sort(int columnIndex, bool ascending,
+      QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (!widget.enableSort ||
+        columnIndex == 0 ||
+        columnIndex > widget.sortFields.length) {
+      return;
+    }
     setState(() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = getFilteredDocs(snapshot);
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+          getFilteredDocs(snapshot);
       docs.sort((a, b) {
-        final fieldA = widget.sortFields[columnIndex](widget.fromMap(a.data(), a.id));
-        final fieldB = widget.sortFields[columnIndex](widget.fromMap(b.data(), b.id));
-        return ascending ? Comparable.compare(fieldA, fieldB) : Comparable.compare(fieldB, fieldA);
+        final fieldA =
+            widget.sortFields[columnIndex - 1](widget.fromMap(a.data(), a.id));
+        final fieldB =
+            widget.sortFields[columnIndex - 1](widget.fromMap(b.data(), b.id));
+        return ascending
+            ? Comparable.compare(fieldA, fieldB)
+            : Comparable.compare(fieldB, fieldA);
       });
       _filteredDocs = docs;
     });
   }
 
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    if (!widget.enableSearch || widget.searchFields.isEmpty) return snapshot.docs;
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> getFilteredDocs(
+      QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (!widget.enableSearch || widget.searchFields.isEmpty) {
+      return snapshot.docs;
+    }
     String searchText = _searchController.text.toLowerCase();
     return snapshot.docs.where((doc) {
       return widget.searchFields.any((field) {
-        return (doc.data()[field]?.toString().toLowerCase() ?? '').contains(searchText);
+        return (doc.data()[field]?.toString().toLowerCase() ?? '')
+            .contains(searchText);
       });
     }).toList();
   }
 
   Widget _buildDataTable(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    _filteredDocs = getFilteredDocs(snapshot);
-    if (_filteredDocs!.isEmpty) {
+    if (_sortColumnIndex == null) {
+      _filteredDocs = getFilteredDocs(snapshot);
+    }
+    if (_filteredDocs != null && _filteredDocs!.isEmpty) {
       return NothingFound();
     }
 
     return Theme(
       data: Theme.of(context).copyWith(
         cardTheme: Theme.of(context).cardTheme.copyWith(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          color: Colors.white,
-        ),
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              color: Colors.white,
+            ),
       ),
       child: SizedBox(
         width: double.infinity,
         child: PaginatedDataTable(
           showEmptyRows: false,
           columns: widget.columns.map((col) {
-            if (widget.enableSort && widget.sortFields.isNotEmpty && widget.columns.indexOf(col) < widget.sortFields.length) {
+            final index = widget.columns.indexOf(col);
+            if (widget.enableSort &&
+                index > 0 &&
+                index <= widget.sortFields.length) {
               return DataColumn(
                 label: col.label,
-                onSort: col.onSort ?? (columnIndex, ascending) => _sort(columnIndex, ascending, snapshot),
+                onSort: (i, ascending) => _sort(i, ascending, snapshot),
               );
             }
             return col;
           }).toList(),
-          rowsPerPage: _filteredDocs!.length < _pageSize ? _filteredDocs!.length : _pageSize,
+          rowsPerPage: _filteredDocs!.length < _pageSize
+              ? _filteredDocs!.length
+              : _pageSize,
           sortColumnIndex: _sortColumnIndex,
           sortAscending: _sortAscending,
           source: GenericDataSource<T>(
@@ -139,7 +160,8 @@ class _GenericDataTableState<T> extends State<GenericDataTable<T>> {
             deleteFailureMessage: widget.deleteFailureMessage,
             onUpdate: () {
               setState(() {
-                _filteredDocs = null; // Force rebuild with latest snapshot
+                _filteredDocs = null;
+                print('Table updated, resetting _filteredDocs');
               });
             },
           ),
@@ -150,27 +172,33 @@ class _GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
   @override
   Widget build(BuildContext context) {
-    print('sortFields: ${widget.sortFields.length }');
+    print('sortFields: ${widget.sortFields.length}');
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: widget.dataStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          print('StreamBuilder error: ${snapshot.error}');
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         if (!snapshot.hasData) {
+          print('StreamBuilder loading, no data yet');
           return const Center(child: CircularProgressIndicator());
         }
+        print(
+            'Snapshot received: ${snapshot.data!.docs.map((doc) => doc.data()['name']).toList()}');
         return Column(
           children: [
             if (widget.enableSearch)
               Container(
                 color: AppColors.appBarBG,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: Strings.search,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () => _search(snapshot.data!),
@@ -233,40 +261,45 @@ class GenericDataSource<T> extends DataTableSource {
   @override
   DataRow getRow(int index) {
     if (index >= documents.length) {
+      print('Index out of bounds: $index, length: ${documents.length}');
       return const DataRow(cells: []);
     }
     final model = fromMap(documents[index].data(), documents[index].id);
     final cells = cellBuilder(model);
-    assert(cells.length == expectedCellCount, 'cellBuilder must return $expectedCellCount cells for the data columns');
+    assert(cells.length == expectedCellCount,
+        'cellBuilder must return $expectedCellCount cells for the data columns');
     return DataRow(
       cells: [
-        DataCell(Text((index + 1).toString())),
+        DataCell(Text((index + 1).toString())), // Symbolic numbering
         ...cells,
         DataCell(
           PopupMenuButton<int>(
             onSelected: (i) async {
               switch (i) {
-                case 1:
+                case 1: // Edit
                   await showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text(Strings.edit),
-                        content: addEditWidget(model: model, id: documents[index].id),
+                        content: addEditWidget(
+                            model: model, id: documents[index].id),
                       );
                     },
                   );
-                  onUpdate(); // Trigger rebuild after dialog closes
+                  onUpdate(); // Trigger rebuild after edit
                   break;
-                case 2:
+                case 2: // Delete
                   await showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return ConfirmationDialog(
-                        title: deleteTitlePrefix + (documents[index].data()['name']?.toString() ?? ''),
+                        title: deleteTitlePrefix +
+                            (documents[index].data()['name']?.toString() ?? ''),
                         message: deleteMessage,
                         onConfirm: () async {
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
                           Navigator.of(context).pop();
                           try {
                             await deleteService(documents[index].id);
