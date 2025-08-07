@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
 import 'package:ofoqe_naween/components/no_data.dart';
-import 'package:ofoqe_naween/pages/products/collection_fields/category_fields.dart';
-import 'package:ofoqe_naween/pages/products/models/category.dart';
-import 'package:ofoqe_naween/pages/products/pages/add_category.dart';
-import 'package:ofoqe_naween/pages/products/services/category_service.dart';
+import 'package:ofoqe_naween/pages/products/collection_fields/brand_fields.dart';
+import 'package:ofoqe_naween/pages/products/models/brand.dart';
+import 'package:ofoqe_naween/pages/products/pages/add_brand.dart';
+import 'package:ofoqe_naween/pages/products/services/brand_service.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class BrandsPage extends StatefulWidget {
@@ -26,7 +26,7 @@ class _BrandsPageState extends State<BrandsPage> {
   @override
   void initState() {
     super.initState();
-    _exchangeStream = _getCategories();
+    _exchangeStream = _getBrands();
   }
 
   @override
@@ -36,8 +36,8 @@ class _BrandsPageState extends State<BrandsPage> {
     super.dispose();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCategories() {
-    return CategoryService().getDocumentsStreamWithFilters(
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getBrands() {
+    return BrandService().getDocumentsStreamWithFilters(
       // filters: {'name': _searchController.text, 'parentId': null},
       // searchField: 'name', // Field to search
       // searchValue: _searchController.text, // Search value
@@ -77,13 +77,13 @@ class _BrandsPageState extends State<BrandsPage> {
                 columnSpacing: 20,
                 columns: const [
                   DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.categoryName)),
+                  DataColumn(label: Text(Strings.brandName)),
                   DataColumn(label: Text(Strings.description)),
-                  DataColumn(label: Text(Strings.actions)),
+                  DataColumn(label: Text(Strings.country)),
                 ],
                 source: _DataTableSource(
                   context: context,
-                  categories: filteredDocs,
+                  brands: filteredDocs,
                   numberOffset: (number - 1) * _rowsPerPage,
                 ),
               )));
@@ -102,8 +102,8 @@ class _BrandsPageState extends State<BrandsPage> {
             context: context,
             builder: (BuildContext context) {
               return const AlertDialog(
-                title: Text(Strings.addCategory),
-                content: AddCategoryPage(),
+                title: Text(Strings.add + Strings.brand),
+                content: AddBrandPage(),
               );
             },
           );
@@ -131,24 +131,25 @@ class _BrandsPageState extends State<BrandsPage> {
 
 class _DataTableSource extends DataTableSource {
   final BuildContext context;
-  final List<QueryDocumentSnapshot<Map<String, dynamic>>> categories;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> brands;
   final int numberOffset;
 
   _DataTableSource({
     required this.context,
-    required this.categories,
+    required this.brands,
     required this.numberOffset,
   });
 
   @override
   DataRow getRow(int index) {
-    final categoryEntry = categories[index].data();
+    final brandEntry = brands[index].data();
     int number = numberOffset + index + 1;
 
     return DataRow(cells: [
       DataCell(Text(number.toString())),
-      DataCell(Text(categoryEntry[CategoryFields.name] ?? '')),
-      DataCell(Text(categoryEntry[CategoryFields.description] ?? '')),
+      DataCell(Text(brandEntry[BrandFields.name] ?? '')),
+      DataCell(Text(brandEntry[BrandFields.description] ?? '')),
+      DataCell(Text(brandEntry[BrandFields.country] ?? '')),
       DataCell(
         PopupMenuButton<int>(
           onSelected: (i) {
@@ -159,10 +160,10 @@ class _DataTableSource extends DataTableSource {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text(Strings.editExchange),
-                      content: AddCategoryPage(
-                          category: CategoryModel.fromMap(categoryEntry,
-                              categories[index].id),
-                          id: categories[index].id),
+                      content: AddBrandPage(
+                          brand: BrandModel.fromMap(brandEntry,
+                              brands[index].id),
+                          id: brands[index].id),
                     );
                   },
                 );
@@ -172,9 +173,9 @@ class _DataTableSource extends DataTableSource {
                   context: context,
                   builder: (BuildContext context) {
                     return ConfirmationDialog(
-                      title: Strings.deleteCategory +
-                          (categoryEntry[CategoryFields.name] ?? ''),
-                      message: Strings.categoryDeleteMessage,
+                      title: Strings.delete +
+                          (brandEntry[BrandFields.name] ?? ''),
+                      message: Strings.deleteItemMessage,
                       onConfirm: () async {
                         // Save the scaffold messenger context
                         final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -184,14 +185,14 @@ class _DataTableSource extends DataTableSource {
 
                         try {
                           // Attempt to delete the exchange
-                          await CategoryService().deleteDocument(
-                              categories[index].id);
+                          await BrandService().deleteDocument(
+                              brands[index].id);
 
                           // If successful, show a success message
                           scaffoldMessenger.showSnackBar(
                             const SnackBar(
                               content:
-                                  Text(Strings.categoryDeletedSuccessfully),
+                                  Text(Strings.brand + Strings.itemDeletedSuccessfully),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -199,7 +200,7 @@ class _DataTableSource extends DataTableSource {
                           // Handle any error (like related transactions) and show a SnackBar
                           scaffoldMessenger.showSnackBar(
                             const SnackBar(
-                              content: Text(Strings.failedToDeleteCategory),
+                              content: Text(Strings.failedToDeleteItem + Strings.brand),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -233,7 +234,7 @@ class _DataTableSource extends DataTableSource {
   }
 
   @override
-  int get rowCount => categories.length;
+  int get rowCount => brands.length;
 
   @override
   bool get isRowCountApproximate => false;
