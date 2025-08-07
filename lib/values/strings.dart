@@ -195,5 +195,5 @@ class Strings{
   static const String failedToDeleteCategory = 'خطا در حذف دسته بندی';
   static const String chooseCategory = 'انتخاب دسته بندی';
 
-
+  static const String brands = 'برند ها';
 }

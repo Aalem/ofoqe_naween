@@ -161,7 +161,6 @@ class _GenericDataTableState<T> extends State<GenericDataTable<T>> {
             onUpdate: () {
               setState(() {
                 _filteredDocs = null;
-                print('Table updated, resetting _filteredDocs');
               });
             },
           ),
@@ -172,20 +171,15 @@ class _GenericDataTableState<T> extends State<GenericDataTable<T>> {
 
   @override
   Widget build(BuildContext context) {
-    print('sortFields: ${widget.sortFields.length}');
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: widget.dataStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          print('StreamBuilder error: ${snapshot.error}');
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         if (!snapshot.hasData) {
-          print('StreamBuilder loading, no data yet');
           return const Center(child: CircularProgressIndicator());
         }
-        print(
-            'Snapshot received: ${snapshot.data!.docs.map((doc) => doc.data()['name']).toList()}');
         return Column(
           children: [
             if (widget.enableSearch)
@@ -261,7 +255,6 @@ class GenericDataSource<T> extends DataTableSource {
   @override
   DataRow getRow(int index) {
     if (index >= documents.length) {
-      print('Index out of bounds: $index, length: ${documents.length}');
       return const DataRow(cells: []);
     }
     final model = fromMap(documents[index].data(), documents[index].id);
