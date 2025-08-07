@@ -7,4 +7,5 @@ class CollectionNames{
   static const String currencies = 'currencies';
   static const String products = 'products';
   static const String categories = 'categories';
+  static const String brands = 'brands';
 }

@@ -11,12 +11,20 @@ class Strings{
   static const String suppliers = 'شرکت های تولیدی';
 
   // general
-  static const String edit = 'ویرایش';
-  static const String delete = 'حذف';
+  static const String add = 'اضافه کردن ';
+  static const String edit = 'ویرایش ';
+  static const String delete = 'حذف ';
   static const String nothingFound = 'اطلاعاتی پیدا نشد';
   static const String noDataStored = 'تا به حال اطلاعاتی ثبت نشده است';
   static const String nothingFoundGuide = 'لطفاً واژه های جستجو را عوض نموده، دوباره امتحان کنید!';
   static const String addNewData = 'برای ثبت اطلاعات میتوانید روی دکمه زیر کلیک کنید!';
+  static const String country = 'کشور';
+
+  static const String itemDeletedSuccessfully = ' مؤفقانه حذف شد';
+  static const String itemUpdatedSuccessfully = ' مؤفقانه آپدیت شد';
+  static const String failedToDeleteItem = 'خطا در حذف ';
+
+  static const String deleteItemMessage = 'آیا مطمئن هستید میخواهید حذف کنید؟';
 
   // Page Under Construction
   static const String underConstructionTitle = 'این صفحه تحت بازسازی قرار دارد';
@@ -196,4 +204,10 @@ class Strings{
   static const String chooseCategory = 'انتخاب دسته بندی';
 
   static const String brands = 'برند ها';
+  static const String brand = 'برند';
+  static const brandName = 'نام برند';
+  static const enterBrandName = 'لطفاً نام برند را وارد کنید';
+  static const brandAddedSuccessfully = 'برند مؤفقانه ثبت شد';
+  static const brandUpdatedSuccessfully = 'برند مؤفقانه آپدیت شد';
+
 }
