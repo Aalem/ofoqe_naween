@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ofoqe_naween/components/dialogs/confirmation_dialog.dart';
-import 'package:ofoqe_naween/components/no_data.dart';
 import 'package:ofoqe_naween/pages/products/collection_fields/brand_fields.dart';
 import 'package:ofoqe_naween/pages/products/models/brand.dart';
 import 'package:ofoqe_naween/pages/products/pages/add_brand.dart';
 import 'package:ofoqe_naween/pages/products/services/brand_service.dart';
+import 'package:ofoqe_naween/utilities/data-tables/generic_datatable.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class BrandsPage extends StatefulWidget {
@@ -16,85 +15,34 @@ class BrandsPage extends StatefulWidget {
 }
 
 class _BrandsPageState extends State<BrandsPage> {
-  final int _pageSize = 10;
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _horizontalScrollController = ScrollController();
-
-  int _rowsPerPage = 13;
-  Stream<QuerySnapshot<Map<String, dynamic>>>? _exchangeStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _brandStream;
 
   @override
   void initState() {
     super.initState();
-    _exchangeStream = _getBrands();
+    _brandStream = _getBrands();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _horizontalScrollController.dispose();
     super.dispose();
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _getBrands() {
     return BrandService().getDocumentsStreamWithFilters(
-      // filters: {'name': _searchController.text, 'parentId': null},
-      // searchField: 'name', // Field to search
-      // searchValue: _searchController.text, // Search value
-      orderByField: 'name', // Optional sorting
-      descending: true, // Optional sorting order
+      orderByField: 'name',
+      descending: true,
     );
-
-  }
-
-  Widget _buildPaginatedDataTable(
-      QuerySnapshot<Map<String, dynamic>> snapshot) {
-    int number = 1;
-    if (snapshot.docs.isNotEmpty) {
-      var filteredDocs = snapshot.docs;
-      _rowsPerPage = 12;
-      _rowsPerPage = filteredDocs.length < _rowsPerPage
-          ? filteredDocs.length
-          : _rowsPerPage;
-      return Theme(
-          data: Theme.of(context).copyWith(
-            cardTheme: Theme.of(context).cardTheme.copyWith(
-                elevation: 0, margin: EdgeInsets.zero, color: Colors.white),
-          ),
-          child: SizedBox(
-              width: double.infinity,
-              child: PaginatedDataTable(
-                // header: Text(Strings.moneyExchanges),
-                showEmptyRows: false,
-                rowsPerPage: _rowsPerPage,
-                // onRowsPerPageChanged: (value) {
-                //   setState(() {
-                //     _rowsPerPage = value!;
-                //   });
-                // },
-                // availableRowsPerPage: const [5, 13, 20],
-                horizontalMargin: 10,
-                columnSpacing: 20,
-                columns: const [
-                  DataColumn(label: Text(Strings.number)),
-                  DataColumn(label: Text(Strings.brandName)),
-                  DataColumn(label: Text(Strings.description)),
-                  DataColumn(label: Text(Strings.country)),
-                ],
-                source: _DataTableSource(
-                  context: context,
-                  brands: filteredDocs,
-                  numberOffset: (number - 1) * _rowsPerPage,
-                ),
-              )));
-    } else {
-      return NoDataExists();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(Strings.brands),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -110,135 +58,37 @@ class _BrandsPageState extends State<BrandsPage> {
         },
         child: const Icon(Icons.add),
       ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _exchangeStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return SingleChildScrollView(
-              child: _buildPaginatedDataTable(snapshot.data!));
-        },
+      body: GenericDataTable<BrandModel>(
+        columns: const [
+          DataColumn(label: Text(Strings.number)), // Non-sortable
+          DataColumn(label: Text(Strings.brandName)),
+          DataColumn(label: Text(Strings.description)),
+          DataColumn(label: Text(Strings.country)),
+          DataColumn(label: Text(Strings.actions)), // Non-sortable
+        ],
+        dataStream: _brandStream!,
+        fromMap: (data, id) => BrandModel.fromMap(data, id),
+        deleteService: BrandService().deleteDocument,
+        addEditWidget: ({BrandModel? model, String? id}) => AddBrandPage(brand: model, id: id),
+        cellBuilder: (BrandModel brand) => [
+          DataCell(Text(brand.name ?? '')),
+          DataCell(Text(brand.description ?? '')),
+          DataCell(Text(brand.country ?? '')),
+        ],
+        addTitle: Strings.add + Strings.brand,
+        deleteTitlePrefix: Strings.delete,
+        deleteMessage: Strings.deleteItemMessage,
+        deleteSuccessMessage: Strings.brand + Strings.itemDeletedSuccessfully,
+        deleteFailureMessage: Strings.failedToDeleteItem + Strings.brand,
+        enableSearch: true,
+        enableSort: true,
+        searchFields: [BrandFields.name],
+        sortFields: [
+              (BrandModel b) => b.name ?? '',
+              (BrandModel b) => b.description ?? '',
+              (BrandModel b) => b.country ?? '',
+        ],
       ),
     );
   }
-}
-
-class _DataTableSource extends DataTableSource {
-  final BuildContext context;
-  final List<QueryDocumentSnapshot<Map<String, dynamic>>> brands;
-  final int numberOffset;
-
-  _DataTableSource({
-    required this.context,
-    required this.brands,
-    required this.numberOffset,
-  });
-
-  @override
-  DataRow getRow(int index) {
-    final brandEntry = brands[index].data();
-    int number = numberOffset + index + 1;
-
-    return DataRow(cells: [
-      DataCell(Text(number.toString())),
-      DataCell(Text(brandEntry[BrandFields.name] ?? '')),
-      DataCell(Text(brandEntry[BrandFields.description] ?? '')),
-      DataCell(Text(brandEntry[BrandFields.country] ?? '')),
-      DataCell(
-        PopupMenuButton<int>(
-          onSelected: (i) {
-            switch (i) {
-              case 1:
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text(Strings.editExchange),
-                      content: AddBrandPage(
-                          brand: BrandModel.fromMap(brandEntry,
-                              brands[index].id),
-                          id: brands[index].id),
-                    );
-                  },
-                );
-                break;
-              case 2:
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return ConfirmationDialog(
-                      title: Strings.delete +
-                          (brandEntry[BrandFields.name] ?? ''),
-                      message: Strings.deleteItemMessage,
-                      onConfirm: () async {
-                        // Save the scaffold messenger context
-                        final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-                        // Close the dialog before performing async operation
-                        Navigator.of(context).pop();
-
-                        try {
-                          // Attempt to delete the exchange
-                          await BrandService().deleteDocument(
-                              brands[index].id);
-
-                          // If successful, show a success message
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text(Strings.brand + Strings.itemDeletedSuccessfully),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        } catch (e) {
-                          // Handle any error (like related transactions) and show a SnackBar
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(Strings.failedToDeleteItem + Strings.brand),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                );
-            }
-          },
-          icon: const Icon(Icons.more_vert),
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 1,
-              child: ListTile(
-                leading: Icon(Icons.edit, color: Colors.blue),
-                title: Text(Strings.edit),
-              ),
-            ),
-            const PopupMenuItem(
-              value: 2,
-              child: ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text(Strings.delete),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ]);
-  }
-
-  @override
-  int get rowCount => brands.length;
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get selectedRowCount => 0;
 }
