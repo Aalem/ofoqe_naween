@@ -1,8 +1,11 @@
 class Strings{
+  // App
   static const String appName = 'افق نوین';
+
   static const String ledger = 'دفتر کل';
   static const String inventory = 'گدام';
   static const String customers = 'مشتری ها';
+  static const String customer = 'مشتری';
   static const String products = 'اجناس';
   static const String journal = 'روزنامچه';
   static const String moneyExchange = 'صرافی';
