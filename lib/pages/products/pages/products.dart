@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ofoqe_naween/pages/customers/add_customer.dart';
-import 'package:ofoqe_naween/pages/customers/collection_fields/customer_fields.dart';
-import 'package:ofoqe_naween/pages/customers/models/customer_model.dart';
-import 'package:ofoqe_naween/pages/customers/services/customer_service.dart';
+import 'package:ofoqe_naween/pages/products/collection_fields/product_fields.dart';
+import 'package:ofoqe_naween/pages/products/models/product.dart';
+import 'package:ofoqe_naween/pages/products/pages/add_product.dart';
+import 'package:ofoqe_naween/pages/products/services/product_service.dart';
 import 'package:ofoqe_naween/utilities/data-tables/generic_datatable.dart';
-import 'package:ofoqe_naween/values/collection_names.dart';
 import 'package:ofoqe_naween/values/strings.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -16,12 +15,13 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _searchController = TextEditingController();
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _productStream;
 
   @override
   void initState() {
     super.initState();
+    _productStream = _getProducts();
   }
 
   @override
@@ -30,69 +30,84 @@ class _ProductsPageState extends State<ProductsPage> {
     super.dispose();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getCustomers() {
-    return _firestore
-        .collection(CollectionNames.customers)
-        .orderBy(CustomerFields.name, descending: true)
-        .snapshots();
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getProducts() {
+    return ProductService().getDocumentsStreamWithFilters(
+      orderByField: ProductFields.name,
+      descending: false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(Strings.customers), // Changed to reflect customers
+        title: const Text(Strings.products),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
             context: context,
-            builder: (BuildContext context) {
-              return const AlertDialog(
-                title: Text(Strings.addCustomerTitle),
-                content: NewCustomerPage(),
-              );
-            },
+            builder: (_) => const AlertDialog(
+              title: Text(Strings.addProduct),
+              content: AddProductPage(),
+            ),
           );
         },
         child: const Icon(Icons.add),
       ),
-      body: GenericDataTable<Customer>(
+      body: GenericDataTable<Product>(
         columns: const [
-          DataColumn(label: Text(Strings.number)), // Non-sortable
-          DataColumn(label: Text(Strings.company)),
-          DataColumn(label: Text(Strings.customerName)),
-          DataColumn(label: Text(Strings.phoneNumbers)),
-          DataColumn(label: Text(Strings.address)),
-          DataColumn(label: Text(Strings.actions)), // Non-sortable
+          DataColumn(label: Text(Strings.number)),
+          DataColumn(label: Text(Strings.productName)),
+          DataColumn(label: Text(Strings.productCode)),
+          DataColumn(label: Text(Strings.category)),
+          DataColumn(label: Text(Strings.brand)),
+          DataColumn(label: Text(Strings.model)),
+          DataColumn(label: Text(Strings.warranty)),
+          DataColumn(label: Text(Strings.color)),
+          DataColumn(label: Text(Strings.unit)),
+          DataColumn(label: Text(Strings.dimension)),
+          DataColumn(label: Text(Strings.weight)),
+          DataColumn(label: Text(Strings.actions)),
         ],
-        dataStream: _getCustomers(),
-        fromMap: (data, id) => Customer.fromMap(data, id),
-        deleteService: CustomerService().deleteDocument,
-        addEditWidget: ({Customer? model, String? id}) => NewCustomerPage(customer: model, id: id),
-        cellBuilder: (Customer customer) => [
-          DataCell(Text(customer.company)),
-          DataCell(Text(customer.name)),
-          DataCell(
-            Text(
-              '${customer.phone1}${customer.phone2.isNotEmpty == true ? '\n${customer.phone2}' : ''}',
-              textDirection: TextDirection.ltr,
-            ),
-          ),
-          DataCell(Text(customer.address)),
+        dataStream: _productStream!,
+        fromMap: (data, id) => Product.fromMap(data, id),
+        deleteService: ProductService().deleteDocument,
+        addEditWidget: ({Product? model, String? id}) =>
+            AddProductPage(product: model, id: id),
+        cellBuilder: (Product product) => [
+          DataCell(Text(product.name ?? '')),
+          DataCell(Text(product.code ?? '')),
+          DataCell(Text(product.categoryName ?? '')),
+          DataCell(Text(product.brandName ?? '')),
+          DataCell(Text(product.unit ?? '')),
+          DataCell(Text(product.model ?? '')),
+          DataCell(Text(product.warranty ?? '')),
+          DataCell(Text(product.color ?? '')),
+          DataCell(Text(product.dimension ?? '')),
+          DataCell(Text(product.weight?.toString() ?? '')),
         ],
-        addTitle: Strings.addCustomerTitle,
-        deleteTitlePrefix: Strings.customerDeleteTitle,
-        deleteMessage: Strings.customerDeleteMessage,
-        deleteSuccessMessage: Strings.customerDeleteMessage,
-        deleteFailureMessage: Strings.errorDeletingCustomer,
+        addTitle: Strings.addProduct,
+        deleteTitlePrefix: Strings.delete + Strings.product,
+        deleteMessage: Strings.deleteItemMessage,
+        deleteSuccessMessage: Strings.product + Strings.itemDeletedSuccessfully,
+        deleteFailureMessage: Strings.failedToDeleteItem + Strings.product,
         enableSearch: true,
         enableSort: true,
-        searchFields: const [CustomerFields.company, CustomerFields.name],
+        searchFields: const [
+          ProductFields.name,
+          ProductFields.code,
+          ProductFields.categoryName,
+          ProductFields.brandName,
+          ProductFields.model,
+        ],
         sortFields: [
-              (Customer c) => c.company,
-              (Customer c) => c.name,
+              (Product p) => p.name ?? '',
+              (Product p) => p.code ?? '',
+              (Product p) => p.categoryName ?? '',
+              (Product p) => p.brandName ?? '',
+              (Product p) => p.model ?? '',
         ],
       ),
     );

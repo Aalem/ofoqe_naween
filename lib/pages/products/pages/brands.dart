@@ -60,11 +60,11 @@ class _BrandsPageState extends State<BrandsPage> {
       ),
       body: GenericDataTable<BrandModel>(
         columns: const [
-          DataColumn(label: Text(Strings.number)), // Non-sortable
+          DataColumn(label: Text(Strings.number)),
           DataColumn(label: Text(Strings.brandName)),
           DataColumn(label: Text(Strings.description)),
           DataColumn(label: Text(Strings.country)),
-          DataColumn(label: Text(Strings.actions)), // Non-sortable
+          DataColumn(label: Text(Strings.actions)),
         ],
         dataStream: _brandStream!,
         fromMap: (data, id) => BrandModel.fromMap(data, id),
