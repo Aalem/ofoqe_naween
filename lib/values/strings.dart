@@ -14,6 +14,12 @@ class Strings{
   static const String add = 'اضافه کردن ';
   static const String edit = 'ویرایش ';
   static const String delete = 'حذف ';
+  static const String select = 'انتخاب ';
+  static const String model = 'مدل ';
+  static const String color = 'رنگ ';
+  static const String warranty = 'وارنتی ';
+  static const String dimension = 'ابعاد ';
+  static const String weight = 'وزن ';
   static const String nothingFound = 'اطلاعاتی پیدا نشد';
   static const String noDataStored = 'تا به حال اطلاعاتی ثبت نشده است';
   static const String nothingFoundGuide = 'لطفاً واژه های جستجو را عوض نموده، دوباره امتحان کنید!';
@@ -205,6 +211,8 @@ class Strings{
 
   static const String brands = 'برند ها';
   static const String brand = 'برند';
+  static const String product = 'جنس ';
+  static const String unit = 'واحد ';
   static const brandName = 'نام برند';
   static const enterBrandName = 'لطفاً نام برند را وارد کنید';
   static const brandAddedSuccessfully = 'برند مؤفقانه ثبت شد';
